@@ -1,0 +1,89 @@
+"""
+Boilerplate from :
+https://randomnerdtutorials.com/micropython-ws2812b-addressable-rgb-leds-neopixel-esp32-esp8266/
+Idea from:
+https://rose.systems/tv_head/
+
+This works currently with a 12 x 8 LED array.
+"""
+
+from machine import Pin
+import machine, neopixel, time
+from os import listdir
+
+# define interrupt handling functions
+def button_handler(pin):
+#change global to be used in while loop
+  global button_pressed
+  button_pressed = pin
+
+# configure pushbuttons as interrupts
+# Button to play base animation
+button1 = Pin(15, Pin.IN)
+button1.irq(trigger=Pin.IRQ_RISING, handler=button_handler)
+
+# Button to clear display
+button2 = Pin(14, Pin.IN)
+button2.irq(trigger=Pin.IRQ_RISING, handler=button_handler)
+
+button_pressed = button1
+
+# Pin numbers to address
+p = 5
+# Number of leds to address
+n = 96
+
+# Define display to draw to
+# Display is our array of leds.
+display = neopixel.NeoPixel(machine.Pin(p), n)
+
+def read_frames(folder_path:str) -> list[list[int]]:
+  for filename in listdir():
+    if filename.endswith('.csv'):
+      with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+        for line in csvfile:
+          print(line.rstrip('\n').rstrip('\r').split(","))
+      print('\n')
+
+
+# Clear the display
+def clear() -> None:
+  for i in range(n):
+    display[i] = (0, 0, 0)
+  display.write()
+
+
+# Play frames with a set time interval in ms.
+def animate(frames_path:str, sleep:int) -> None:
+  frames = read_frames(frames_path)
+
+  for frame in frames:
+    for p in frame:
+      display[p[0]] = [p[1], p[2], p[3]]
+    display.write()
+    time.sleep_ms(sleep)
+
+
+# Set single frame with 500 ms delay.
+def set_static_frame(frames_path:str) -> None:
+  frames = read_frames(frames_path)
+
+  for frame in frames:
+    for p in frame:
+      display[p[0]] = [p[1], p[2], p[3]]
+    display.write()
+    time.sleep_ms(500)
+
+
+def main():
+  while True:
+      if button_pressed is button1:
+        animate("/csvs/blink")
+      elif button_pressed is button2:
+        animate("/csvs/eye_movement")
+      else:
+        print("bruh")
+  
+
+if __name__ == '__main__':
+  main()
