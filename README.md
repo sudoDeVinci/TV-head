@@ -1,7 +1,7 @@
 # What It Is
-This is the software behind my Tv Head cosplay, using ws2812 LED strips as a dot-matrix display to show various animations and images on the face. This was made for 2023 Winter Narcon.
+This is the software behind my Tv Head cosplay for 2023 Winter Narcon using ws2812 LED strips as a dot-matrix display to show various animations and images on the face.
 
-While I had wanted to do this cosplay for a while, the technical details details were modified from [Vivian Thomas'](https://rose.systems) implementation found [here](https://rose.systems/tv_head/).
+While I had wanted to do this cosplay for a while, the technical details were modified from [Vivian Thomas'](https://rose.systems) implementation found [here](https://rose.systems/tv_head/).
 
 
 # What it does
