@@ -1,5 +1,7 @@
 """
-We convert a number of png files into a 3d array of LED indexes and rgb values, then write these to csv files.
+We convert a number of png files into a 3d array of LED indexes and rgb values, then write these to csv files
+in the form: 
+index, red, green, blue.
 """
 
 import os
@@ -17,7 +19,7 @@ def get_res() -> tuple[int, int]:
 
 
 # Create a new numpy array in the form [LED index, r, g ,b] 
-def convert_image(path:str, write_folder: str) -> None:
+def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int]) -> None:
     global header
     # read in the png file
     img = cv2.imread(path, cv2.IMREAD_COLOR)
@@ -25,10 +27,10 @@ def convert_image(path:str, write_folder: str) -> None:
     # Read the dimensions of the image.
     height, width, _ = img.shape
     # If the dimensions dont match the display dimensions, resize it.
-    (tw, th) = get_res()
-    if (tw, th)!=(width, height):
-        #print(f"Image is {width} x {height}, we want {tw} x {th}")
-        img = cv2.resize(img, (tw, th), interpolation = cv2.INTER_AREA)
+    
+    if target_dimensions!=(width, height):
+        # print(f"Image is {width} x {height}, we want {target_dimensions[0]} x {target_dimensions[1]}")
+        img = cv2.resize(img, target_dimensions, interpolation = cv2.INTER_AREA)
 
 
     filename = os.path.basename(path)[:-4]+".csv"
@@ -65,35 +67,36 @@ def convert_image(path:str, write_folder: str) -> None:
 
 
 # Convert all images in a folder sequentially.
-def convert_frames(folder_path:str, write_folder:str) -> None:
+def convert_frames(folder_path:str, write_folder:str, target_dimensions:tuple[int,int]) -> None:
 
     if os.path.isdir(folder_path):
         for root, _, images in os.walk(folder_path):
             for image in images:
                 frame_path = os.path.join(root, image)
                 if os.path.isfile(frame_path):
-                    convert_image(frame_path, write_folder)
+                    convert_image(frame_path, write_folder, target_dimensions)
 
 
 # Convert all folders of images within a given directory.
-def convert_all(folder_path:str, write_folder:str) -> None:
+def convert_all(folder_path:str, write_folder:str, target_dimensions:tuple[int,int]) -> None:
     if os.path.isdir(folder_path):
         for root, folders, __ in os.walk(folder_path):
             for folder in folders:
                 folder_path = os.path.join(root, folder)
                 print(folder_path)
                 if os.path.isdir(folder_path):
-                    convert_frames(folder_path, write_folder)
+                    convert_frames(folder_path, write_folder, target_dimensions)
 
 
 def main() -> None:
     global header
+    (tw, th) = get_res()
     # Header for frame csvs
     header = ['index', 'red', 'green', 'blue']
     # folder we write our folders of frames  to
     write_folder = 'upload/csvs'
 
-    convert_all("dev/images", write_folder)
+    convert_all("dev/images", write_folder, (tw,th))
     # convert_frames("dev/images/blink", write_folder)
 
 

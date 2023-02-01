@@ -15,6 +15,7 @@ from os import listdir
 # define interrupt handling functions
 def button_handler(pin):
 #change global to be used in while loop
+  clear_display()
   global button_pressed
   button_pressed = pin
 
@@ -23,9 +24,13 @@ def button_handler(pin):
 button1 = Pin(15, Pin.IN)
 button1.irq(trigger=Pin.IRQ_RISING, handler=button_handler)
 
-# Button to clear display
+# Button to play blinking nimation
 button2 = Pin(14, Pin.IN)
 button2.irq(trigger=Pin.IRQ_RISING, handler=button_handler)
+
+# Button to play eye movement animation
+button3 = Pin(13, Pin.IN)
+button3.irq(trigger=Pin.IRQ_RISING, handler=button_handler)
 
 button_pressed = button1
 
@@ -52,14 +57,14 @@ def read_frames(folder_path:str) -> list[list[int]]:
 
 
 # Clear the display
-def clear() -> None:
+def clear_display() -> None:
   for i in range(n):
     display[i] = (0, 0, 0)
   display.write()
 
 
 # Play frames with a set time interval in ms.
-def animate(frames_path:str, sleep:int) -> None:
+def animate(frames_path:str, sleep:int = 83) -> None:
   frames = read_frames(frames_path)
 
   for frame in frames:
@@ -71,12 +76,14 @@ def animate(frames_path:str, sleep:int) -> None:
 
 def main():
   while True:
-      if button_pressed is button1:
-        animate("/csvs/blink")
-      elif button_pressed is button2:
-        animate("/csvs/eye_movement")
-      else:
-        print("bruh")
+    if button_pressed is button1:
+      animate("/csvs/base")
+    elif button_pressed is button2:
+      animate("/csvs/blink")
+    elif button_pressed is button3:
+      animate("/csvs/eye_movement")
+    else:
+      print("bruh")
   
 
 if __name__ == '__main__':
