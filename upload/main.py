@@ -33,10 +33,10 @@ button_pressed = button1
 p = 5
 # Number of leds to address
 n = 96
-
 # Define display to draw to
 # Display is our array of leds.
 display = NeoPixel(Pin(p), n)
+
 
 def read_frames(folder_path:str) -> list[list[int]]:
   frames = []

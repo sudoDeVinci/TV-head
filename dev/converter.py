@@ -7,12 +7,30 @@ import cv2
 import numpy as np
 import csv 
 
+# Get the resolution of the display from the upload folder.
+# tuple is in form (width, height)
+def get_res() -> tuple[int, int]:
+    res = []
+    with open('upload/res.txt', 'r', encoding = 'utf-8') as r:
+        res = [int(line.rstrip('\n')) for line in r]
+    return tuple(res)
+
 
 # Create a new numpy array in the form [LED index, r, g ,b] 
 def convert_image(path:str, write_folder: str) -> None:
     global header
     # read in the png file
     img = cv2.imread(path, cv2.IMREAD_COLOR)
+    
+    # Read the dimensions of the image.
+    height, width, _ = img.shape
+    # If the dimensions dont match the display dimensions, resize it.
+    (tw, th) = get_res()
+    if (tw, th)!=(width, height):
+        #print(f"Image is {width} x {height}, we want {tw} x {th}")
+        img = cv2.resize(img, (tw, th), interpolation = cv2.INTER_AREA)
+
+
     filename = os.path.basename(path)[:-4]+".csv"
     # print(filename)
     foldername = os.path.basename(os.path.dirname(path))
@@ -69,6 +87,7 @@ def convert_all(folder_path:str, write_folder:str) -> None:
 
 
 def main() -> None:
+    global header
     # Header for frame csvs
     header = ['index', 'red', 'green', 'blue']
     # folder we write our folders of frames  to
