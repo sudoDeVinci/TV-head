@@ -8,8 +8,8 @@ My implementation aims more to be an alternate version of their mk1 design.
 - Making the design more user servicable and beginner friendly by including fewer parts and being written in MicroPython.
 - Rather than focusing on displaying text, this design aims more to display pre-loaded images and animations. 
 
-## Structure
 
+## Structure
 Files within the [upload](/upload/) folder are meant to be uploaded to the board.
 Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/converter.py).
 Files within [utility](/utility/) are utility scripts for easy use of the ESP32 board. These are [clearing the board's memory](/utility/clear_all.py), [uploading all files](/utility/update_all.py), [updating the csvs](/utility/update_csvs.py) and [viewing the board's file structure](/utility/view_files.py).
@@ -27,7 +27,7 @@ Listed items which are ticked indicate that they have been bought already.
 
 
 # What it does
-Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened pixel index and rgb values. These csvs are loaded onto the esp32 board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
+Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the esp32 board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
 
@@ -42,9 +42,11 @@ index,red,green,blue
 ```
 Where **index** here is that of the pixel the value is read from. Images are resized according to the resolution stored in [res.txt](/upload/res.txt) if needed.
 
+Alike images and frames of animations are kept within the same folder. Eg: The [upload](upload/csvs/blink) folder contains frames of a blinking animation.
 
-## Addressing WS2812 LED Dot-Matrix
-To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html) library.
+
+## Addressing a WS2812 LED Dot-Matrix
+To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html) library:
 
 ```python
 from machine import Pin
@@ -59,3 +61,51 @@ n = 96
 display = NeoPixel(Pin(p), n)
 ```
 
+### Addressing Individual LEDs
+Individual LEDs are addressed by their index in the strip, and can be set to a specified RGB value with each colour channel as an element in a tuple:
+
+```python
+# To set LED i to (0, 0, 0):
+display[i] = (0, 0, 0)  
+```
+
+
+### Displaying an Image
+To display an image, we simply loop through a csv file of flattened pixel values.
+
+First we read a folder of csv files:
+
+```python
+def read_frames(folder_path:str) -> list[list[int]]:
+  frames = []
+  for filename in listdir(folder_path):
+    if filename.endswith('.csv'):
+      frame = []
+      with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+        for line in csvfile:
+          frame.append(line.rstrip('\n').rstrip('\r').split(","))
+      frames.append(frame)
+  return frames
+```
+This will give us a 3D array of pixel values. 
+
+
+To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
+We skip the first item in the list because it's the header for the csv file:
+
+```python
+for p in frame[1:]:
+      display[p[0]] = (p[1], p[2], p[3])
+      # To have the change made, we call:
+      display.write()
+```
+
+To cycle through an animation, we loop through a list of frames and do the same as above, sleeping for a specified time between each:
+
+```python
+for frame in frames:
+    for p in frame[1:]:
+      display[p[0]] = (p[1], p[2], p[3])
+    display.write()
+    sleep_ms(sleep)
+```

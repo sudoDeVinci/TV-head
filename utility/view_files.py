@@ -39,6 +39,9 @@ try:
     process = Popen(f"ampy --port COM{COM} ls", stdout = PIPE)
     files = process.stdout.read().decode('utf-8').strip()[1:]
     files = list(files.split("\r\n"))
+    if len(files) == 1:
+        print("No files on board.")
+        exit()
     traverse(files)
 
 except PyboardError as e:

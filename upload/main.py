@@ -69,7 +69,7 @@ def animate(frames_path:str, sleep:int = 83) -> None:
 
   for frame in frames:
     for p in frame[1:]:
-      display[p[0]] = [p[1], p[2], p[3]]
+      display[p[0]] = (p[1], p[2], p[3])
     display.write()
     sleep_ms(sleep)
 
