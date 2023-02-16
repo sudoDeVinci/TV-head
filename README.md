@@ -8,7 +8,10 @@ My implementation aims more to be an alternate version of their mk1 design.
 - Making the design more user servicable and beginner friendly by including fewer parts and being written in MicroPython.
 - Rather than focusing on displaying text, this design aims more to display pre-loaded images and animations. 
 
-[NOTE: The ability to scroll text will be implemented via hosting a web server on the device.]
+### NOTE
+
+The ability to scroll text will be implemented via simple sockets to save on memory/power. The backbone of this can be seen in the [receiver](dev/receiver.py) and [sender](upload/receiver.py). 
+A simple [encoder](uploads/encoder.py) is used to unpack the packets sent to the board. This is so that not only can text be sent, but potentially images/entire animations.
 
 
 ## Structure
