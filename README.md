@@ -8,10 +8,12 @@ My implementation aims more to be an alternate version of their mk1 design.
 - Making the design more user servicable and beginner friendly by including fewer parts and being written in MicroPython.
 - Rather than focusing on displaying text, this design aims more to display pre-loaded images and animations. 
 
+[NOTE: The ability to scroll text will be implemented via hosting a web server on the device.]
+
 
 ## Structure
 Files within the [upload](/upload/) folder are meant to be uploaded to the board.
-Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/converter.py).
+Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/image_converter.py).
 Files within [utility](/utility/) are utility scripts for easy use of the ESP32 board. These are [clearing the board's memory](/utility/clear_all.py), [uploading all files](/utility/update_all.py), [updating the csvs](/utility/update_csvs.py) and [viewing the board's file structure](/utility/view_files.py).
 
 

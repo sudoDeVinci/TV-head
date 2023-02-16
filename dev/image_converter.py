@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import csv 
 
+
 # Get the resolution of the display from the upload folder.
 # tuple is in form (width, height)
 def get_res() -> tuple[int, int]:
@@ -17,7 +18,7 @@ def get_res() -> tuple[int, int]:
         res = [int(line.rstrip('\n')) for line in r]
     return tuple(res)
 
-
+ 
 # Create a new numpy array in the form [LED index, r, g ,b] 
 def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int]) -> None:
     global header

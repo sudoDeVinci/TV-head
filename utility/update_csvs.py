@@ -1,3 +1,8 @@
+"""
+Update the CSVS on the board.
+The COM port of the board is passed as an arg, but defaults to 3 if not specified.
+"""
+
 import os
 from time import sleep
 from subprocess import Popen

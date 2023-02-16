@@ -1,3 +1,7 @@
+"""
+This script traverses the file system of the board and prints it in a readbale fashion
+"""
+
 from sys import argv
 from subprocess import Popen, PIPE
 from parsers import parseStringtoInt

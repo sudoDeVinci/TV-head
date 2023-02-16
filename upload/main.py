@@ -3,8 +3,6 @@ Boilerplate from :
 https://randomnerdtutorials.com/micropython-ws2812b-addressable-rgb-leds-neopixel-esp32-esp8266/
 Idea from:
 https://rose.systems/tv_head/
-
-This works currently with a 12 x 8 LED array.
 """
 
 from machine import Pin
@@ -13,7 +11,7 @@ from time import sleep_ms
 from os import listdir
 
 # define interrupt handling functions
-def button_handler(pin):
+def button_handler(pin: Pin) -> None:
 #change global to be used in while loop
   clear_display()
   global button_pressed
@@ -74,7 +72,7 @@ def animate(frames_path:str, sleep:int = 83) -> None:
     sleep_ms(sleep)
 
 
-def main():
+def main() -> None:
   while True:
     if button_pressed is button1:
       animate("/csvs/base")

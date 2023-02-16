@@ -1,3 +1,9 @@
+"""
+Upldate the libraries of the board.
+If the first attempt to upload doesn't work, try once more.
+After this, consoder the file "borked".
+"""
+
 from  os import listdir, path
 from time import sleep
 from subprocess import Popen

@@ -1,3 +1,7 @@
+"""
+Clear all files from the board.
+"""
+
 import os
 from time import sleep
 from subprocess import Popen, PIPE
