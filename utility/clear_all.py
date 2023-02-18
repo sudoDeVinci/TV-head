@@ -11,7 +11,7 @@ from sys import argv
 # If there is not a valid second argument for the COM port, default to COM 3.
 # First check if there are at least 2 args passed to the script.
 # Then check if the [1] arg can be cast to integer.
-parsed = parseStringtoInt(argv[1]) if len(argv) >=2 else 3
+parsed = parseStringtoInt(argv[1]) if len(argv) >=2 else 6
 COM = parsed if parsed else 3
 
 try:

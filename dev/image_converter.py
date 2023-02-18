@@ -57,11 +57,52 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
     # flatten image to 2d array
     img_vector = img.reshape(-1, img.shape[-1])
 
+    # Flip every odd row in the array.
+    # "Row" as in row of pixels on the tv head.
+    # Assuming the wiring is as simple as possible.
+
+    # Image is sized to our dimensions so we use them
+    for i in range(width, (height*width), width*2):
+        # Start iterating at the first odd row
+        # Skip to every other odd row afterward.
+        # Flip the odd row and insert it in-place
+        img_vector[i:(i+10)] = np.flip(img_vector[i:(i+10)])
+
+    """
+    A frame which looks like this:
+
+    [00 01 02 03 04 05 06 07 08 09]
+    [10 11 12 13 14 15 16 17 18 19]
+    [20 21 22 23 24 25 26 27 28 29]
+    [30 31 32 33 34 35 36 37 38 39]
+    [40 41 42 43 44 45 46 47 48 49]
+    [50 51 52 53 54 55 56 57 58 59]
+    [60 61 62 63 64 65 66 67 68 69]
+    [70 71 72 73 74 75 76 77 78 79]
+    [80 81 82 83 84 85 86 87 88 89]
+    [90 91 92 93 94 95 96 97 98 99]
+
+    Will now look like this:
+    
+    [00 01 02 03 04 05 06 07 08 09]
+    [19 18 17 16 15 14 13 12 11 10]
+    [20 21 22 23 24 25 26 27 28 29]
+    [39 38 37 36 35 34 33 32 31 30]
+    [40 41 42 43 44 45 46 47 48 49]
+    [59 58 57 56 55 54 53 52 51 50]
+    [60 61 62 63 64 65 66 67 68 69]
+    [79 78 77 76 75 74 73 72 71 70]
+    [80 81 82 83 84 85 86 87 88 89]
+    [99 98 97 96 95 94 93 92 91 90]
+    """
+
+
     pixels = []
+
 
     for i in range(img_vector.shape[0]):
         if np.any(img_vector[i]):
-            pixels.append([i, img_vector[i][2], img_vector[i][1], img_vector[i][0]])
+                pixels.append([i, img_vector[i][2], img_vector[i][1], img_vector[i][0]])
     #if len(pixels) == 0: pixels.append([0,0,0,0])
 
     #====================================================================================#
