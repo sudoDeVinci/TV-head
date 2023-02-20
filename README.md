@@ -50,7 +50,9 @@ Alike images and frames of animations are kept within the same folder. Eg: The [
 
 ### Adjusting for Wiring Format
 To allow for wiring similar to Vivan's implementation seen below, we must adjust the conversion to account for the reversal of every other row in the display.
+
 ![wiring](media/vivian-back-panel.jpg)
+
 Every other row in the display is upside-down, which is the same as it simply being backwards. To account for this, we simply iterate through each row of the image during conversion, flipping every other row:
 ```python
 # flatten image to 2d array
