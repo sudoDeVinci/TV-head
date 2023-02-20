@@ -5,11 +5,18 @@ Idea from:
 https://rose.systems/tv_head/
 """
 
+
+
 from machine import Pin
 from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir
-from micropython import alloc_emergency_exception_buf
+from sys import exit
+
+
+
+# Variable to keep running script or not.
+running = True
 
 
 
@@ -17,8 +24,6 @@ from micropython import alloc_emergency_exception_buf
 # This is a global value which is changed via the
 # Interrupt handler for the buttons.
 current_animation = "/csvs/base/"
-
-
 
 # Pin numbers to address
 p = 16
@@ -35,6 +40,31 @@ display = NeoPixel(Pin(p), n)
 button1 = Pin(17, Pin.IN, Pin.PULL_DOWN)
 button2 = Pin(18, Pin.IN, Pin.PULL_DOWN)
 button3 = Pin(19, Pin.IN, Pin.PULL_DOWN)
+button4 = Pin(20, Pin.IN, Pin.PULL_DOWN)
+
+
+
+# Define interrupt handler
+def animation_change(pin: Pin) -> None:
+    global current_animation
+    
+    if pin == button1:
+        current_animation = "/csvs/eye_movement/"
+    elif pin == button2:
+        current_animation = "/csvs/blink/"
+    elif pin == button3:
+        current_animation = "/csvs/standby/"
+    elif pin == button4:
+        global running
+        running = False
+
+
+
+# Set the IRQ on the pins
+button1.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)
+button2.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
+button3.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
+button4.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
 
 
 
@@ -54,37 +84,32 @@ def read_frames(folder_path:str) -> list[list[int]]:
 
 # Clear the display
 def clear_display() -> None:
-    global n
-    for i in range(n):
-        display[i] = (0, 0, 0)
+    display.fill((0, 0, 0))
     display.write()
 
 
 
 # Play frames with a set time interval in ms.
 def animate(frames_path:str, sleep:int = 300) -> None:
-    global n
     frames = read_frames(frames_path)
 
     for frame in frames:
-        for i in range(n):
-            display[i] = (0, 0, 0)
+        display.fill((0, 0, 0))
         for p in frame[1:]:
             display[int(p[0])] = (int(p[1]), int(p[2]), int(p[3]))
         display.write()
         sleep_ms(sleep)
-        #clear_display()
 
 
 
 def main() -> None:
     global current_animation
-    alloc_emergency_exception_buf(100)
-    loop = 0
-    while loop < 5:
-        loop += 1
+    global running
+    while running:
         animate(current_animation)
   
 
+
 if __name__ == '__main__':
-  main()
+    main()
+    clear_display()
