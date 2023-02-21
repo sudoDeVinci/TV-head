@@ -30,7 +30,7 @@ Listed items which are ticked indicate that they have been bought already.
 - [x] [Micro USB Extension Cable](https://www.amazon.se/-/en/gp/product/B012S0ZQNU/ref=ox_sc_act_title_1?smid=ANU9KP01APNAG&psc=1)
 
 
-# What it does
+# How it Works
 Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the esp32 board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
