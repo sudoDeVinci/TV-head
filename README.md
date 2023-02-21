@@ -36,10 +36,6 @@ Listed items which are ticked indicate that they have been bought already.
 
 ## How it Works
 
-<<<<<<< HEAD
-=======
-# How it Works
->>>>>>> d483a8b04feaa6969a9a0c7175042659a1a2252e
 Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the esp32 board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
