@@ -56,6 +56,7 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
     #====================================================================================#
     # flatten image to 2d array
     img_vector = img.reshape(-1, img.shape[-1])
+    print(width)
 
     # Flip every odd row in the array.
     # "Row" as in row of pixels on the tv head.
@@ -66,7 +67,7 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
         # Start iterating at the first odd row
         # Skip to every other odd row afterward.
         # Flip the odd row and insert it in-place
-        img_vector[i:(i+10)] = np.flip(img_vector[i:(i+10)], axis=1)
+        img_vector[i:(i+width)] = np.flip(img_vector[i:(i+width)], axis=1)
 
     """
     A frame which looks like this:
@@ -102,16 +103,15 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
 
     reverse = False
     for i in range(img_vector.shape[0]):
-        if i%15 == 0:
+        if i%(width) == 0:
             reverse = not reverse
         if np.any(img_vector[i]):
             if reverse:
                 pixels.append([i, img_vector[i][2], img_vector[i][1], img_vector[i][0]])
-                print(f"Index: {i} \t| |\t ({img_vector[i][2]},{img_vector[i][1]},{img_vector[i][0]})")
+                #print(f"Index: {i} \t| |\t ({img_vector[i][2]},{img_vector[i][1]},{img_vector[i][0]})")
             else:
                 pixels.append([i, img_vector[i][0], img_vector[i][1], img_vector[i][2]])
-                print(f"Index: {i} \t| |\t ({img_vector[i][0]},{img_vector[i][1]},{img_vector[i][2]})")
-
+                #print(f"Index: {i} \t| |\t ({img_vector[i][0]},{img_vector[i][1]},{img_vector[i][2]})")
 
     #====================================================================================#
 
