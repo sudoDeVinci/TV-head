@@ -23,24 +23,29 @@ running = True
 # The current animation being played
 # This is a global value which is changed via the
 # Interrupt handler for the buttons.
-current_animation = "/csvs/base/"
+current_animation = "/csvs/base"
 
 # Pin numbers to address
-p = 16
+p = 13
 # Number of leds to address
-n = 100
+n = 144
 
 # Define display to draw to
 # Display is our array of leds.
-display = NeoPixel(Pin(p), n)
+
+# Uncomment for Pi Pico:
+# display = NeoPixel(Pin(p), n, timing = 0)
+
+# Uncomment for ESP-32:
+display = NeoPixel(Pin(p), n, timing = 1)
 
 
 
 # Buttons to be mapped to animations
-button1 = Pin(17, Pin.IN, Pin.PULL_DOWN)
-button2 = Pin(18, Pin.IN, Pin.PULL_DOWN)
-button3 = Pin(19, Pin.IN, Pin.PULL_DOWN)
-button4 = Pin(20, Pin.IN, Pin.PULL_DOWN)
+button1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
+button2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
+button3 = Pin(32, Pin.IN, Pin.PULL_DOWN)
+button4 = Pin(33, Pin.IN, Pin.PULL_DOWN)
 
 
 
@@ -49,11 +54,11 @@ def animation_change(pin: Pin) -> None:
     global current_animation
     
     if pin == button1:
-        current_animation = "/csvs/eye_movement/"
+        current_animation = "/csvs/eye_movement"
     elif pin == button2:
-        current_animation = "/csvs/blink/"
+        current_animation = "/csvs/blink"
     elif pin == button3:
-        current_animation = "/csvs/standby/"
+        current_animation = "/csvs/standby"
     elif pin == button4:
         global running
         running = False
@@ -61,10 +66,10 @@ def animation_change(pin: Pin) -> None:
 
 
 # Set the IRQ on the pins
-button1.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)
-button2.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
-button3.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
-button4.irq(trigger=Pin.IRQ_FALLING|Pin.IRQ_RISING, handler=animation_change)  
+button1.irq(trigger=Pin.IRQ_RISING, handler=animation_change)
+button2.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
+button3.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
+button4.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
 
 
 
