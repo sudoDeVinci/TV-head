@@ -1,12 +1,3 @@
-"""
-Boilerplate from :
-https://randomnerdtutorials.com/micropython-ws2812b-addressable-rgb-leds-neopixel-esp32-esp8266/
-Idea from:
-https://rose.systems/tv_head/
-"""
-
-
-
 from machine import Pin
 from neopixel import NeoPixel
 from time import sleep_ms
@@ -14,19 +5,17 @@ from os import listdir
 from sys import exit
 
 
-
 # Variable to keep running script or not.
 running = True
 
 
-
 # The current animation being played
 # This is a global value which is changed via the
-# Interrupt handler for  the buttons.
+# Interrupt handler for the buttons.
 current_animation = "/csvs/smile"
 
 # Pin numbers to address
-p = 13
+p = 16
 # Number of leds to address
 n = 150
 
@@ -34,42 +23,10 @@ n = 150
 # Display is our array of leds.
 
 # Uncomment for Pi Pico:
-# display = NeoPixel(Pin(p), n, timing = 0)
-
-# Uncomment for ESP-32:
 display = NeoPixel(Pin(p), n, timing = 1)
 
-
-
-# Buttons to be mapped to animations
-button1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
-button2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
-button3 = Pin(32, Pin.IN, Pin.PULL_DOWN)
-button4 = Pin(33, Pin.IN, Pin.PULL_DOWN)
-
-
-
-# Define interrupt handler
-def animation_change(pin: Pin) -> None:
-    global current_animation
-    
-    if pin == button1:
-        current_animation = "/csvs/eye_movement"
-    elif pin == button2:
-        current_animation = "/csvs/blink"
-    elif pin == button3:
-        current_animation = "/csvs/standby"
-    elif pin == button4:
-        global running
-        running = False
-
-
-
-# Set the IRQ on the pins
-button1.irq(trigger=Pin.IRQ_RISING, handler=animation_change)
-button2.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
-button3.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
-button4.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
+# Uncomment for ESP-32:
+# display = NeoPixel(Pin(p), n, timing = 1)
 
 
 
@@ -101,20 +58,15 @@ def animate(frames_path:str, sleep:int = 300) -> None:
     for frame in frames:
         display.fill((0, 0, 0))
         for p in frame[1:]:
+            # print("index: ",p[0], p[1], p[2], p[3])
             display[int(p[0])] = (int(p[1]), int(p[2]), int(p[3]))
         display.write()
         sleep_ms(sleep)
 
-
-
 def main() -> None:
-    global current_animation
-    global running
-    while running:
+    count = 0
+    while count < 3:
         animate(current_animation)
-  
-
-
-if __name__ == '__main__':
-    main()
-    clear_display()
+        count += 1
+        
+main()
