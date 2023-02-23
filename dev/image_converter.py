@@ -56,7 +56,7 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
     #====================================================================================#
     # flatten image to 2d array
     img_vector = img.reshape(-1, img.shape[-1])
-    print(width)
+    # print(width)
 
     # Flip every odd row in the array.
     # "Row" as in row of pixels on the tv head.

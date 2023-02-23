@@ -23,18 +23,17 @@ running = True
 # The current animation being played
 # This is a global value which is changed via the
 # Interrupt handler for  the buttons.
-current_animation = "/csvs/smile"
+current_animation = "/csvs/eye"
 
 # Pin numbers to address
-p = 13
+p = 16
 # Number of leds to address
 n = 150
 
 # Define display to draw to
 # Display is our array of leds.
 
-# Uncomment for Pi Pico:
-# display = NeoPixel(Pin(p), n, timing = 0)
+
 
 # Uncomment for ESP-32:
 display = NeoPixel(Pin(p), n, timing = 1)
@@ -42,10 +41,10 @@ display = NeoPixel(Pin(p), n, timing = 1)
 
 
 # Buttons to be mapped to animations
-button1 = Pin(34, Pin.IN, Pin.PULL_DOWN)
-button2 = Pin(35, Pin.IN, Pin.PULL_DOWN)
-button3 = Pin(32, Pin.IN, Pin.PULL_DOWN)
-button4 = Pin(33, Pin.IN, Pin.PULL_DOWN)
+button1 = Pin(14, Pin.IN, Pin.PULL_DOWN)
+button2 = Pin(15, Pin.IN, Pin.PULL_DOWN)
+button3 = Pin(12, Pin.IN, Pin.PULL_DOWN)
+button4 = Pin(13, Pin.IN, Pin.PULL_DOWN)
 
 
 
@@ -66,10 +65,10 @@ def animation_change(pin: Pin) -> None:
 
 
 # Set the IRQ on the pins
-button1.irq(trigger=Pin.IRQ_RISING, handler=animation_change)
-button2.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
-button3.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
-button4.irq(trigger=Pin.IRQ_RISING, handler=animation_change)  
+button1.irq(trigger=Pin.IRQ_RISING|Pin.IRQ_FALLING, handler=animation_change)
+button2.irq(trigger=Pin.IRQ_RISING|Pin.IRQ_FALLING, handler=animation_change)  
+button3.irq(trigger=Pin.IRQ_RISING|Pin.IRQ_FALLING, handler=animation_change)  
+button4.irq(trigger=Pin.IRQ_RISING|Pin.IRQ_FALLING, handler=animation_change)  
 
 
 
