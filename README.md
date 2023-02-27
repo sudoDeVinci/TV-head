@@ -12,33 +12,36 @@ My implementation aims more to be an alternate version of their mk1 design.
 - Making the design more user servicable and beginner friendly by including fewer parts and being written in MicroPython.
 - Rather than focusing on displaying text, this design aims more to display pre-loaded images and animations.
 
-### NOTE
 
-The ability to scroll text will be implemented via simple sockets to save on memory/power. The backbone of this can be seen in the [receiver](dev/receiver.py) and [sender](upload/receiver.py).
-A simple [encoder](uploads/encoder.py) is used to unpack the packets sent to the board. This is so that not only can text be sent, but potentially images/entire animations.
 
 ### Structure
 
 Files within the [upload](/upload/) folder are meant to be uploaded to the board.
 Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/image_converter.py).
-Files within [utility](/utility/) are utility scripts for easy use of the ESP32 board. These are [clearing the board's memory](/utility/clear_all.py), [uploading all files](/utility/update_all.py), [updating the csvs](/utility/update_csvs.py) and [viewing the board's file structure](/utility/view_files.py).
+Files within [utility](/utility/) are utility scripts for easy use of any ESP32 board if you prefer that. These are: 
+- [clearing the board's memory](/utility/clear_all.py) 
+- [uploading all files](/utility/update_all.py) 
+- [updating the csvs](/utility/update_csvs.py) 
+- [viewing the board's file structure](/utility/view_files.py)
 
 ### Materials
 
-Rather than the Circuit Playground Express microcontroller used by Vivan in their implementation, I opted to use a [Freenove ESP32-WROVER](https://www.amazon.se/-/en/Freenove-ESP32-WROVER-Compatible-Wireless-Detailed/dp/B09BC5CNHM/ref=sr_1_25?crid=2F3ZES5T9PUGN&keywords=esp32&qid=1675219924&sprefix=esp32%2Caps%2C376&sr=8-25) because of my previous experience with one; a cloud tracking computer vision project which can be viewed [here](https://github.com/sudoDeVinci/Colour-Based-Cloud-Detection).
+Rather than the Circuit Playground Express microcontroller used by Vivan in their implementation, I opted to use a [Rasberry Pi Pico](https://www.amazon.se/-/en/SC0915-Raspberry-Pi-Pico/dp/B09KVB8LVR/ref=sr_1_5?crid=DJA3JLK27B3X&keywords=pi+pico&qid=1677125232&sprefix=pi+pico%2Caps%2C171&sr=8-5) because of my previous experience with micropython; a cloud tracking computer vision project which can be viewed [here](https://github.com/sudoDeVinci/Colour-Based-Cloud-Detection).
 
 Listed items which are ticked indicate that they have been bought already.
 
-- [x] [Freenove ESP32-WROVER CAM](https://www.amazon.se/-/en/Freenove-ESP32-WROVER-Compatible-Wireless-Detailed/dp/B09BC5CNHM/ref=sr_1_25?crid=2F3ZES5T9PUGN&keywords=esp32&qid=1675219924&sprefix=esp32%2Caps%2C376&sr=8-25).
+- [x] [Rasberry Pi Pico](https://www.amazon.se/-/en/SC0915-Raspberry-Pi-Pico/dp/B09KVB8LVR/ref=sr_1_5?crid=DJA3JLK27B3X&keywords=pi+pico&qid=1677125232&sprefix=pi+pico%2Caps%2C171&sr=8-5)
 - [x] [60 LED/m | 5m Length | 10mm width WS2812B LED Strip](https://www.amazon.se/-/en/dp/B08L8X7Z4P?psc=1&ref=ppx_yo2ov_dt_b_product_details)
 - [x] [10 000 mAh Battery bank](https://www.amazon.se/-/en/Varta-5797610111-Power-Bank-Silver/dp/B08G91WFQR/ref=sr_1_10?crid=3BJ4IKJVQS9UX&keywords=powerbank&qid=1675220403&sprefix=power%2Bban%2Caps%2C373&sr=8-10&th=1)
 - [x] [Micro USB Extension Cable](https://www.amazon.se/-/en/gp/product/B012S0ZQNU/ref=ox_sc_act_title_1?smid=ANU9KP01APNAG&psc=1)
 
-## How it Works
+## How it Works 
 
-Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the esp32 board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
+Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
+
+If images filenames are not zero-padded, they may not be iterated through in the right order. A quick fix for mass-renaming files to be zero-padded is the [padded_rename script](dev/padded_rename.py) 
 
 ### Converting images
 
@@ -57,9 +60,10 @@ Alike images and frames of animations are kept within the same folder. Eg: The [
 
 ### Adjusting for Wiring Format
 
-To allow for wiring similar to Vivan's implementation seen below, we must adjust the conversion to account for the reversal of every other row in the display.
+To allow for wiring similar to Vivan's implementation , we must adjust the conversion to account for the reversal of every other row in the display.
+My wiring can be seen below against the 3D printed frame and light diffuser:
 
-![wiring](media/vivian-back-panel.jpg)
+![wiring](media/wiring.jpg)
 
 Every other row in the display is upside-down, which is the same as it simply being backwards. To account for this, we simply iterate through each row of the image during conversion, flipping every other row:
 
@@ -72,12 +76,30 @@ img_vector = img.reshape(-1, img.shape[-1])
 # Assuming the wiring is as simple as possible.
 
 # Image is sized to our dimensions so we use them
-for i in range(width, (height*width), width*2):
-    # Start iterating at the first odd row
-    # Skip to every other odd row afterward.
-    # Flip the odd row and insert it in-place
-    img_vector[i:(i+10)] = np.flip(img_vector[i:(i+10)])
+  for i in range(width, (height*width), width*2):
+      # Start iterating at the first odd row
+      # Skip to every other odd row afterward.
+      # Flip the odd row and insert it in-place
+      img_vector[i:(i+width)] = np.flip(img_vector[i:(i+width)], axis=1)
 ```
+
+This however, also  flips the rgb tuples within the image vector. While there is possibly a better way to flip these back, this was the chosen solution due to time constraints:
+
+```python
+pixels = []
+
+reverse = False
+for i in range(img_vector.shape[0]):
+    if i%(width) == 0:
+        reverse = not reverse
+    if np.any(img_vector[i]):
+        if reverse:
+            pixels.append([i, img_vector[i][2], img_vector[i][1], img_vector[i][0]])
+        else:
+            pixels.append([i, img_vector[i][0], img_vector[i][1], img_vector[i][2]])
+
+```
+
 
 ### Addressing a WS2812 LED Dot-Matrix
 
@@ -126,6 +148,8 @@ def read_frames(folder_path:str) -> list[list[int]]:
 
 This will give us a 3D array of pixel values.
 
+##### Simple display
+
 To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
 We skip the first item in the list because it's the header for the csv file:
 
@@ -149,6 +173,8 @@ for frame in frames:
 The problem with this however, is that unless an LED is explicitly turned off, it will persist to the next frame. We must be able to  clear our frame before drawing the next one.
 While setting the display to a single value can be done iteratively, the Neopixel library provides the **.fill()** for this. This allows us an easy way to clear the display:
 
+**NOTE:** This is fine for relatively low resolutions, however, for larger screen sizes it may be better to clear the pixels of the last frame specifically.
+
 ```python
 display.fill((0, 0, 0,))
 display.write()
@@ -168,3 +194,17 @@ def animate(frames_path:str, sleep:int = 300) -> None:
         display.write()
         sleep_ms(sleep)
 ```
+
+**NOTE**: This is fine for short animations and small images, but due to memory constraints on microcontrollers, this is not an advised general solution.  A better solution would be that of a thrreaded queue of frames, or even simply rendering the frames as they are read.
+
+##### Brightness
+
+For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear.
+Due to the brightness of the LEDS, I turned their brightness down a considerable amount via the following:
+
+
+##### Debuggging
+
+The main error when constructing this was incorrect wiring/addressing LED indexes. The [debuger script](upload/debugger.py) was constructed to check this by showing the wiring configuration with a small light bar of variable size and colour bouncin back and forth along the rows.
+
+
