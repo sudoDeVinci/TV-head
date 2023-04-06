@@ -34,7 +34,6 @@ n = 100
 # Display is our array of leds.
 
 
-
 # Uncomment for ESP-32:
 display = NeoPixel(Pin(p), n, timing = 1)
 
@@ -49,28 +48,23 @@ def read_frames(folder_path:str) -> list[list[int]]:
             animate(frame)
             
 
-
-
 # Clear the display
 def clear_display() -> None:
     display.fill((0, 0, 0))
     display.write()
 
 
-
 # Play frames with a set time interval in ms.
 def animate(frame, sleep:int = 0) -> None:
     display.fill((0, 0, 0))
     for p in frame[1:]:
-        display[int(p[0])] = (int(int(p[1])/20), int(int(p[2])/20), int(int(p[3])/20))
+        display[int(p[0])] = (int(int(p[1])/10), int(int(p[2])/10), int(int(p[3])/10))
     display.write()
     # sleep_ms(sleep)
 
 
-
-
 def main() -> None:
-    animations = ["/csvs/big_eye","/csvs/blink","/csvs/smile","/csvs/question"]
+    animations = ["/csvs/big_eye","/csvs/blink","/csvs/smile","/csvs/question","/csvs/standby"]
     
     global current_animation
     global running
@@ -87,7 +81,6 @@ def main() -> None:
         for i in range(animation_length):
             read_frames(current_animation)
   
-
 
 if __name__ == '__main__':
     main()

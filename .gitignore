@@ -1,1 +1,4 @@
 *.pyc
+*.md
+*.csv
+*.png
