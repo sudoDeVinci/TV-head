@@ -1,5 +1,6 @@
 """
 Getting variable sized led screens for testing on https://wokwi.com
+Generating Json file for LED screen, resolution from upload/res.txt
 """
 
 # Get the resolution of the display from the upload folder.
@@ -9,8 +10,6 @@ def get_res() -> tuple[int, int]:
     with open('upload/res.txt', 'r', encoding = 'utf-8') as r:
         res = [int(line.rstrip('\n')) for line in r]
     return tuple(res)
-
-
 
 led_array = []
 

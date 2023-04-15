@@ -1,3 +1,7 @@
+"""
+This script renames the sequencially numbered files with a new name with padded zeroes.
+"""
+
 from os import rename, walk, path
 
 

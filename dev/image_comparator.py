@@ -1,20 +1,16 @@
-from os import path, walk, mkdir
 import csv
-import cv2
-from cv2 import imread, IMREAD_COLOR,resize, Mat, compare, CMP_NE, findNonZero
 from glob import glob
-import numpy as np
-from numpy import printoptions, array_equal, ndarray
+from os import path, walk, mkdir
+from numpy import array_equal, ndarray, flip
+from cv2 import imread, IMREAD_COLOR,resize, Mat, compare, CMP_NE, findNonZero
 
 
-printoptions(precision=3, suppress=True)
-
-
+# Resolve paths details and save file to csv
 def resolve_path_and_save(image_path:str, write_folder:str, image:ndarray):
     global header
     filename = path.basename(image_path)[:-4]+".csv"
     # print(filename)
-    foldername = path.basename(path.dirname(image_path))
+    foldername = path.basename(path.dirname(image_path))  
     # print(foldername)
 
     if foldername == path.basename(path.dirname(write_folder)):
@@ -46,6 +42,7 @@ def get_res() -> tuple[int, int]:
     return tuple(res)
 
 
+# Reorder image rows to fit strip design, then flatten image into 2D array. 
 def realign(img:Mat, tw, th):
     height, width, _ = img.shape
     target_dimensions = (tw, th)
@@ -56,11 +53,11 @@ def realign(img:Mat, tw, th):
             height, width, _ = img.shape
     # Reverse the order of pixels in every second row
     for i in range(1, height, 2):
-        img[i, :] = np.flip(img[i, :], axis=0)  # Flip the row
+        img[i, :] = flip(img[i, :], axis=0)  # Flip the row
     return img.reshape(-1, img.shape[-1])
     
 
-
+# Convert and save a single image
 def convert_single_image(image:str, write_folder: str, target_dimensions:tuple[int,int]) -> None:
 
     width, height = target_dimensions
@@ -74,7 +71,7 @@ def convert_single_image(image:str, write_folder: str, target_dimensions:tuple[i
     return img
 
 
-# Convert all images in a folder sequentially.
+# Convert and save all images in a folder sequentially.
 def convert_images(images:list(), write_folder: str, target_dimensions:tuple[int,int]) -> None:
         
     width, height = target_dimensions

@@ -9,9 +9,11 @@ While I had wanted to do this cosplay for a while, the technical details were mo
 My implementation aims more to be an alternate version of their mk1 design.
 
 - Rather than use diagonal strips, simply using thinner strips.
-- Making the design more user servicable and beginner friendly by including fewer parts and being written in MicroPython.
-- Rather than focusing on displaying text, this design aims more to display pre-loaded images and animations.
-
+- Making the design more user servicable and beginner friendly by:
+  - Including fewer parts
+  - Being written in MicroPython.
+- Rather than focusing on displaying text, this design aims to display pre-loaded images and animations.
+- Rather than adjusting settings via a physical keyboard connection, a webserver can be used to control animations with a threaded handler.
 
 
 ### Structure
@@ -41,7 +43,7 @@ Images (either pixel art or other) are converted via the [open-cv](https://docs.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
 
-If images filenames are not zero-padded, they may not be iterated through in the right order. A quick fix for mass-renaming files to be zero-padded is the [padded_rename script](dev/padded_rename.py) 
+**If images filenames are not zero-padded, they may not be iterated through in the right order. A quick fix for mass-renaming files to be zero-padded is the [padded_rename script](dev/padded_rename.py)**
 
 ### Converting images
 
@@ -58,48 +60,28 @@ Where **index** here is that of the pixel the value is read from. Images are res
 
 Alike images and frames of animations are kept within the same folder. Eg: The [upload](upload/csvs/blink) folder contains frames of a blinking animation.
 
-### Adjusting for Wiring Format
+Csvs are created as either the change in pixels from the last frame via [Image Comparator](/dev/image_comparator.py) *(Recommended)*, or directly converted to csvs using [Image Converter](/dev/image_converter.py). The difference is in the first case, only the pixels changed between frames are rendered, whereas the second case requires clearing the screen and re-rendering the entire image regardless of frame-to-frame similarity. 
+The first case therefore saves memory, disk space, and CPU cycles, as well as reducing flicker on larger disaplays from clearing, and is the default for operation.
+
+#### Adjusting for Wiring Format
 
 To allow for wiring similar to Vivan's implementation , we must adjust the conversion to account for the reversal of every other row in the display.
 My wiring can be seen below against the 3D printed frame and light diffuser:
 
 ![wiring](media/wiring.jpg)
 
-Every other row in the display is upside-down, which is the same as it simply being backwards. To account for this, we simply iterate through each row of the image during conversion, flipping every other row:
+Every other row in the display is upside-down, which is the same as it simply being backwards. To account for this, we simply iterate through every other row of the image array, calling np.flip() along the row axis.
 
 ```python
-# flatten image to 2d array
-img_vector = img.reshape(-1, img.shape[-1])
-
-# Flip every odd row in the array.
-# "Row" as in row of pixels on the tv head.
-# Assuming the wiring is as simple as possible.
-
-# Image is sized to our dimensions so we use them
-  for i in range(width, (height*width), width*2):
-      # Start iterating at the first odd row
-      # Skip to every other odd row afterward.
-      # Flip the odd row and insert it in-place
-      img_vector[i:(i+width)] = np.flip(img_vector[i:(i+width)], axis=1)
+# Reverse the order of pixels in every second row
+for i in range(1, height, 2):
+    img[i, :] = flip(img[i, :], axis=0)  # Flip the row
 ```
-
-This however, also  flips the rgb tuples within the image vector. While there is possibly a better way to flip these back, this was the chosen solution due to time constraints:
+Now we flatten the array for easier comparison/iteration later on.
 
 ```python
-pixels = []
-
-reverse = False
-for i in range(img_vector.shape[0]):
-    if i%(width) == 0:
-        reverse = not reverse
-    if np.any(img_vector[i]):
-        if reverse:
-            pixels.append([i, img_vector[i][2], img_vector[i][1], img_vector[i][0]])
-        else:
-            pixels.append([i, img_vector[i][0], img_vector[i][1], img_vector[i][2]])
-
+img.reshape(-1, img.shape[-1])
 ```
-
 
 ### Addressing a WS2812 LED Dot-Matrix
 
@@ -129,21 +111,18 @@ display[i] = (0, 0, 0)
 
 #### Displaying an Image
 
-To display an image, we simply loop through a csv file of flattened pixel values.
-
-First we read a folder of csv files:
+To display an image, we build the frame as a tuple of the pixel information, then send it to **animate()**.
+**NOTE:** A threaded queue of frames would be preferred here, but that's for future implementation.
 
 ```python
+from os import listdir
+
 def read_frames(folder_path:str) -> list[list[int]]:
-  frames = []
   for filename in listdir(folder_path):
     if filename.endswith('.csv'):
-      frame = []
       with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-        for line in csvfile:
-          frame.append(line.rstrip('\n').rstrip('\r').split(","))
-      frames.append(frame)
-  return frames
+        frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
+      animate(frame[1:])
 ```
 
 This will give us a 3D array of pixel values.
@@ -151,51 +130,25 @@ This will give us a 3D array of pixel values.
 ##### Simple display
 
 To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
-We skip the first item in the list because it's the header for the csv file:
+We skip the first item in the list because it's the header for the csv file (above):
 
 ```python
-for p in frame[1:]:
-      display[p[0]] = (p[1], p[2], p[3])
-      # To have the change made, we call:
-      display.write()
-```
-
-To cycle through an animation, we loop through a list of frames and do the same as above, sleeping for a specified time between each:
-
-```python
-for frame in frames:
-    for p in frame[1:]:
-      display[p[0]] = (p[1], p[2], p[3])
+# Play frames with a set time interval in ms.
+def animate(frame, sleep:int = 25) -> None:
+    for p in frame:
+      display[int(p[0])] = (int(p[3]), int(p[2]), int(p[1]))
     display.write()
-    sleep_ms(sleep)
+    # sleep_ms(sleep)
 ```
 
 The problem with this however, is that unless an LED is explicitly turned off, it will persist to the next frame. We must be able to  clear our frame before drawing the next one.
 While setting the display to a single value can be done iteratively, the Neopixel library provides the **.fill()** for this. This allows us an easy way to clear the display:
-
-**NOTE:** This is fine for relatively low resolutions, however, for larger screen sizes it may be better to clear the pixels of the last frame specifically.
 
 ```python
 display.fill((0, 0, 0,))
 display.write()
 ```
 
-Drawing can therefore be done via a funtion similar to:
-
-```python
-# Play frames with a set time interval in ms.
-def animate(frames_path:str, sleep:int = 300) -> None:
-    frames = read_frames(frames_path)
-
-    for frame in frames:
-        display.fill((0, 0, 0))
-        for p in frame[1:]:
-            display[int(p[0])] = (int(p[1]), int(p[2]), int(p[3]))
-        display.write()
-        sleep_ms(sleep)
-```
-
-**NOTE**: This is fine for short animations and small images, but due to memory constraints on microcontrollers, this is not an advised general solution.  A better solution would be that of a thrreaded queue of frames, or even simply rendering the frames as they are read.
 
 ##### Brightness
 

@@ -10,7 +10,7 @@ https://rose.systems/tv_head/
 from machine import Pin
 from neopixel import NeoPixel
 from time import sleep_ms
-from os import listdir
+from os import listdir, path
 from random import randint
 
 
@@ -41,11 +41,14 @@ def read_frames(folder_path:str) -> list[list[int]]:
 
     for filename in listdir(folder_path):
         if filename.endswith('.csv'):
-            frame = []
             with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-                #for line in csvfile:
-                frame = [(line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile]
+                frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
             animate(frame)
+
+
+def get_animations(folder_path = "/csvs/") -> list[str]:
+    folders = [name for name in listdir(folder_path) if path.isdir(name)]
+
             
 
 # Clear the display
@@ -56,9 +59,8 @@ def clear_display() -> None:
 
 # Play frames with a set time interval in ms.
 def animate(frame, sleep:int = 0) -> None:
-    display.fill((0, 0, 0))
     for p in frame[1:]:
-        display[int(p[0])] = (int(int(p[1])/10), int(int(p[2])/10), int(int(p[3])/10))
+        display[int(p[0])] = (int(p[3]), int(p[2]), int(p[1]))
     display.write()
     # sleep_ms(sleep)
 

@@ -74,6 +74,7 @@ def convert_image(path:str, write_folder: str, target_dimensions:tuple[int,int])
         writer.writerow(header)
         writer.writerows(tweaked_img)
 
+
 # Convert all images in a folder sequentially.
 def convert_frames(folder_path:str, write_folder:str, target_dimensions:tuple[int,int]) -> None:
     if os.path.isdir(folder_path):
