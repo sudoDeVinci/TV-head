@@ -11,6 +11,10 @@ br_pot = ADC(28)
 sp_pot = ADC(27)
 an_pot = ADC(26)
 
+br_pin = Pin(10, Pin.OUT)
+sp_pin = Pin(11, Pin.OUT)
+an_pin = Pin(12, Pin.OUT)
+
 
 values = {
   "brightness" : 300,
@@ -18,18 +22,21 @@ values = {
   "animation" : 300
   }
 
-pins = {
-  "brightness" : Pin(10, Pin.OUT),
-  "speed" : Pin(11, Pin.OUT),
-  "animation" : Pin(12, Pin.OUT)
-}
+pins = [
+  ["brightness", br_pin],
+  ["speed", sp_pin],
+  ["animation", an_pin]
+]
 
 
 def signal(key:str):
     global pins
-    pins[key].value(1)
-    sleep_ms(50)
-    pins[key].value(0)
+    for pin_details in pins:
+        if pin_details[0] == key:
+            pin_details[1].value(1)
+            sleep_ms(50)
+            pins[key].value(0)
+            break
     
 
 def compare(key:str, val2:int) -> None:
@@ -41,10 +48,14 @@ def compare(key:str, val2:int) -> None:
 def monitor() -> None:
     global values
     global pins
-    while True:
+    for pin in pins:
+        pin[1].value(0)
+    for i in range(200):
         compare("brightness", br_pot.read_u16())
         compare("speed", sp_pot.read_u16())
         compare("animation", an_pot.read_u16())
-        sleep_ms(350)
+        sleep_ms(300)
 
 
+if __name__ == "__main__":
+    monitor()

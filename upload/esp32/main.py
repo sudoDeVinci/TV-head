@@ -13,12 +13,9 @@ from os import listdir
 from random import randint
 
 
-br_pin = Pin(9, Pin.IN)
-sp_pin = Pin(10, Pin.IN)
-an_pin = Pin(11, Pin.IN)
-
-def handle_interrupt(pin: Pin):
-    pass
+br_pin = Pin(25, Pin.IN)
+sp_pin = Pin(26, Pin.IN)
+an_pin = Pin(27, Pin.IN)
 
 
 # Variable to keep running script or not.
@@ -35,7 +32,7 @@ p = 13
 n = 96
 
 # Global brightness coefficient
-b = 0.9
+b = 0.25
 
 # Define display to draw to
 # Display is our array of leds.
@@ -55,14 +52,7 @@ def read_frames(folder_path:str) -> list[list[int]]:
 
 def get_animations(folder_path = "/csvs/") -> list[str]:
     folders = [name for name in listdir(folder_path) if path.isdir(name)]
-
-            
-
-# Clear the display
-def clear_display() -> None:
-    display.fill((0, 0, 0))
-    display.write()
-
+    
 
 # Play frames with a set time interval in ms.
 def animate(frame, sleep:int = 0) -> None:
@@ -74,7 +64,7 @@ def animate(frame, sleep:int = 0) -> None:
 
 
 def main() -> None:
-    while True:
+    for i in range(20):
         read_frames(current_animation)
         sleep_ms(2000)
   

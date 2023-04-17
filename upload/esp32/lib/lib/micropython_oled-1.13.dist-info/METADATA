@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: micropython-oled
+Version: 1.13
+Summary: Micropython scripts for use OLED displays.
+Home-page: http://yeisoncardona.com/
+Download-URL: https://bitbucket.org/espressoide/micropython-oled/downloads/
+Author: Yeison Cardona
+Author-email: yeisoneng@gmail.com
+Maintainer: Yeison Cardona
+Maintainer-email: yeisoneng@gmail.com
+License: GNU GPL
+
