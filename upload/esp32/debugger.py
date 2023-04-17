@@ -12,7 +12,7 @@ running = True
 # Pin numbers to address
 P = 13
 # Number of leds to address
-N = 25
+N = 96
 
 # Define display to draw to
 # Display is our array of leds.
@@ -54,6 +54,6 @@ def snake(snake_length = 4, snake_colour = (50, 50, 50), ms = 30) -> None:
 
 def main() -> None:
     for i in range(3):
-        snake(snake_colour=(250,150,250), ms=45)
+        snake(snake_colour=(250,150,250), ms=30)
         
 main()
