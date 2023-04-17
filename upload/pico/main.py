@@ -20,30 +20,9 @@ an_pin = Pin(12, Pin.OUT)
 
 TX = 4
 RX = 5
+
 # initialize UART with baudrate of 115200, 8 data bits, no parity, 1 stop bit, and pins 1 and 0 for TX and RX, respectively
-uart = UART(1, baudrate=115200, bits=8, parity=None, stop=1, tx=Pin(TX), rx=Pin(RX))
-
-
-values = {
-  "Brightness" : 0,
-  "Speed" : 0,
-  "Channel" : 0
-  }
-
-pins = [
-  ["Brightness", br_pin],
-  ["Speed", sp_pin],
-  ["Channel", an_pin]
-]
-
-def signal(key:str):
-    global pins
-    for pin_details in pins:
-        if pin_details[0] == key:
-            pin_details[1].value(1)
-            sleep_ms(50)
-            pin_details[1].value(0)
-            break
+uart = UART(1, baudrate=115200, bits=8, parity=None, stop=2, tx=Pin(TX), rx=Pin(RX))
 
 def send_over_UART(string_data, value):
     # pack a tuple containing a string and a 16-bit number

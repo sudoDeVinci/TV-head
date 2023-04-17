@@ -1,72 +1,29 @@
-from time import sleep
-from gc import collect
+from machine import Pin, I2C, UART
+from oled import Write, SSD1306_I2C
+from oled.fonts import ubuntu_mono_15
+from time import sleep_ms
+import ustruct
 
-# start text web-server
-def server_start():
-    SSID = "TvHead"                     # Enter your WiFi name
-    PASSWORD = "TransRights"            # Your WiFi password
+scl = Pin(19)
+sda = Pin(18)
+RX = 35
+TX = 34
 
-    from network import WLAN, AP_IF
-    
-    wlan = WLAN(AP_IF)
-    wlan.active(True)
-    wlan.config(essid = SSID, password = PASSWORD)
-    
-    conf = wlan.ifconfig()
-    print('Connected, IP address:', conf)
-    return wlan
+i2c = I2C(scl=scl, sda=sda)
 
+oled = SSD1306_I2C(128, 64, i2c)
+writer = Write(oled, ubuntu_mono_15)
 
-# Get current ip address
-def get_ip() -> str:
-    from socket import socket, AF_INET, SOCK_DGRAM
-    s = socket(AF_INET, SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        return s.getsockname()[0]
-    except Exception:
-        return '127.0.0.1'
+def write_to_oled(writer, value):
+    global oled
+    writer.text("Got: "+str(value), 0, 0)
+    oled.show()
 
+uart = UART(2, baudrate=115200, bits=8, parity=None, stop=1, tx=TX, rx=RX, timeout = 1000)
 
-from socket import socket, SOL_SOCKET, SO_REUSEADDR
-
-
-def listen(s: socket):
-    from encoder import Encoder
-    while True:
-        print("Listening")
-        c,a = s.accept()
-        with Encoder(c) as l:
-            print('Connection from {0}'.format(str(a)))
-            print("Receiving Text..")
-
-            try:
-                data = l.get()
-                if not data:
-                    print("No data received")
-                else:
-                    print(f"Received {data.decode('utf-8')}")
-            except Exception as e:
-                print(e)
-
-s = socket()
-
-wlan = server_start()
-try:
-    # Try to let the socket address be reusable
-    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    try:
-        # Try to bind the socket to an address and port
-        s.bind(('',1312))
-        s.listen(100)
-        # Listen, looping repeatedly
-        listen(s)
-    except Exception as e:
-        print(e)
-except Exception as e:
-    print(e)
-    if s:
-        s.close()
-    if wlan:
-        wlan.disconnect()
+write_to_oled(writer, "waiting")
+while True:
+    if uart.any():
+        data = uart.read()
+        if data is not None:
+            write_to_oled(writer,datadecode())

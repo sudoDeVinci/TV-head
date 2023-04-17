@@ -12,7 +12,7 @@ tx = 34
 br_pin = Pin(25, Pin.IN)
 sp_pin = Pin(26, Pin.IN)
 an_pin = Pin(27, Pin.IN)
-uart = UART(0, baudrate=115200, bits=8, parity=None, stop=1, tx=34, rx=35, timeout = 1000)
+uart = UART(0, baudrate=115200, bits=8, parity=None, stop=2, tx=34, rx=35, timeout = 1000)
 i2c = I2C(scl=scl, sda=sda)
 
 oled = SSD1306_I2C(128, 64, i2c)
@@ -53,6 +53,7 @@ def write_to_oled(writer, fields, value):
     oled.show()
     
 def read_from_UART():
+    
         data = uart.read(18) # read 18 bytes (16-byte string + 2-byte integer) from UART buffer
         unpacked_data = ustruct.unpack("<16sH", data) # unpack the data
         string_data = unpacked_data[0].decode().strip('\x00') # extract the string and remove any trailing null bytes
