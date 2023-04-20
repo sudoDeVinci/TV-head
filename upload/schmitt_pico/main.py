@@ -1,8 +1,9 @@
 """
 To be able to control the globals  of the esp32 animations via potentiometers,
 The pi pico acts as a pseudo schmitt trigger for our analog values.
-The different steps/categories of change for each knob is on the esp32, the pico is concerned with
-signalling the esp32 when the value of a knob changes drastically, causing an interrupt on the esp32. 
+The different steps/categories of change for each knob is on the other pico. 
+This pico is concerned with signalling the esp32 when the value of a knob changes
+drastically, causing an interrupt on the other pico.
 """
 from machine import Pin, ADC, UART
 from time import sleep_ms
@@ -18,7 +19,7 @@ sp_pin = Pin(11, Pin.OUT)
 an_pin = Pin(12, Pin.OUT)
 
 
-pins = (
+out_pins = (
     ("Brightness", br_pin),
     ("Speed", sp_pin),
     ("Channel", an_pin))
@@ -34,23 +35,27 @@ values = {
 ADC_PICO_UART = UART(1, 115200, 5, 4)
 ADC_PICO_UART.init()
 
-def zfill(string, size = 0):
+
+def zfill(string:str, size:int = 0):
     return f"{(size-len(string))*'X'}{string}"
 
-def send_over_UART(string_data, value):
+
+def send_over_UART(string_data:str, value:int):
     global ADC_PICO_UART
     ADC_PICO_UART.write(zfill(string_data,19)+'\n')
     sleep_ms(2)
     ADC_PICO_UART.write(zfill(str(value), 19)+'\n')
 
-def signal(key):
-    for pin in pins:
+
+def signal(key:str):
+    for pin in out_pins:
         if pin[0] == key:
             pin[1].value(1)
             sleep_ms(10)
             pin[1].value(0)
             break
-        
+
+    
 def compare(key:str, val2:int) -> None:
     global values
     if values[key]*0.80 <= val2 <= values[key]*1.2:
@@ -60,12 +65,13 @@ def compare(key:str, val2:int) -> None:
     values[key] = val2
     send_over_UART(key, val2)
     
-def average_reading(pin, amount):
+
+def average_reading(pin:Pin, amount:int):
     readings = []
     pin.read_u16()
-    for i in range(amount):
+    for _ in range(amount):
         readings.append(pin.read_u16())
-        sleep_ms(1)
+        sleep_ms(2)
     
     # Filter readings by standard deviation
     std, mean=std_dev(readings)
@@ -75,7 +81,7 @@ def average_reading(pin, amount):
     average = int(sum(filtered)/len(filtered))
     
     # Map our logarithmic value to a linear range 0-1000
-    outrange = ((average/65535)**10)*1000
+    outrange = ((average/65535)**10)*10000
 
     return int(outrange)
 
@@ -92,9 +98,11 @@ def std_dev(readings):
 
 def monitor() -> None:
     global values
-    global pins
-    for pin in pins:
+    global out_pins
+
+    for pin in out_pins:
         pin[1].value(0)
+
     while True:
         br_avg = average_reading(br_pot, 50)
         compare("Brightness", br_avg)
@@ -102,7 +110,7 @@ def monitor() -> None:
         compare("Speed", sp_avg)
         an_avg = average_reading(an_pot, 50)
         compare("Channel", an_avg)
-        sleep_ms(50)
+        sleep_ms(10)
 
 
 if __name__ == "__main__":
