@@ -10,6 +10,7 @@ from time import sleep_ms
 import machine
 from math import sqrt, pow
 
+
 br_pot = ADC(28)
 sp_pot = ADC(27)
 an_pot = ADC(26)
@@ -61,7 +62,7 @@ def compare(key:str, val2:int) -> None:
     if values[key]*0.80 <= val2 <= values[key]*1.2:
         return
     signal(key)
-    print(key + ": " + str(val2))
+    print(key,": ",str(val2))
     values[key] = val2
     send_over_UART(key, val2)
     
