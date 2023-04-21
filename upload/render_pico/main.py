@@ -133,69 +133,6 @@ sp_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
 an_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
 
 
-uart = UART(1,115200, rx=Pin(5), tx=Pin(4))
-uart.init()
-
-pins = (
-    (br_pin,"Brightness"),
-    (sp_pin,"Speed"),
-    (an_pin,"Channel"))
-
-values = {
-  "Brightness" : 0.5,
-  "Speed" : 0,
-  "Channel" : 0
-  }
-
-def handle_interrupt(pin):
-    global pins
-    print("Interrupt!")
-    string_data, int_data = read_from_UART()
-    if string_data is None or int_data is None:
-        return
-    print("Got: ",string_data, " | ",int_data )
-    for pin_details in pins:
-        if pin_details[0] == string_data:
-            #values[string_data] = int_data
-            break
-        
-
-br_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-sp_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-an_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-    
-
-def recv():
-    while uart.any() < 40:
-        pass
-    
-    #print("BUFFER: ", uart.any())
-    data = uart.readline()
-    try:
-        data = data.decode('utf-8')
-        if '\n' in data:
-            data = data.rstrip('\n')
-            string = data.replace('X', '')
-        #print("Got: ", data.replace('X', ''))
-    except Exception as e:
-        print("Couldn't decode ", data)
-        return (None,None)
-        
-    sleep_ms(5)
-    
-    data = uart.readline()
-    try:
-        data = data.decode('utf-8')
-        if '\n' in data:
-            data = data.rstrip('\n')
-            value = data.replace('X', '')
-        #print("Got: ", data.replace('X', ''))
-    except Exception as e:
-        print("Couldn't decode ", data)
-        return (None,None)
-    
-    return (string, value)
-
 def read_frames(folder_path:str) -> list[list[int]]:
     global animations
     for filename in listdir(folder_path):
