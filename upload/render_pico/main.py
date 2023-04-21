@@ -12,7 +12,6 @@ from time import sleep_ms
 from os import listdir, ilistdir
 from math import pow
 from random import randint
-
 from lcd_api import LcdApi
 from pico_i2c_lcd import I2cLcd
 
@@ -20,6 +19,7 @@ from pico_i2c_lcd import I2cLcd
 I2C_ADDR     = 39
 I2C_NUM_ROWS = 2
 I2C_NUM_COLS = 16
+
 
 i2c = I2C(1, sda=machine.Pin(26), scl=machine.Pin(27), freq=500000)
 lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
@@ -51,22 +51,40 @@ n = 96
 
 # Define display to draw to
 # Display is our array of leds.
-
 display = NeoPixel(Pin(p), n, timing = 1)
 
-uart = UART(1,115200, rx=Pin(5), tx=Pin(4))
-uart.init()
 
 pins = (
     (br_pin,"Brightness"),
     (sp_pin,"Speed"),
     (an_pin,"Channel"))
 
+
 values = {
   "Brightness" : 0.5,
   "Speed" : 10,
   "Channel" : 0
   }
+
+def zfill(string:str, size:int = 0):
+    return f"{(size-len(string))*'0'}{string}"
+
+
+def write_to_display():
+    global values
+    global lcd
+
+    lcd.clear()
+    
+    lcd.move_to(1, 0)
+    lcd.putstr("Channel")
+    lcd.move_to(13, 0)
+    lcd.putstr(f"{zfill(str(values['Channel']), 2)}")
+
+    lcd.move_to(1, 1)
+    lcd.putstr("Brightness: ")
+    lcd.move_to(13, 1)
+    lcd.putstr(f"{int(values['Brightness'] * 100)}")
 
 
 
@@ -124,8 +142,9 @@ def handle_interrupt(pin):
             scaled = 10
         
     values[string_data] = scaled
+    write_to_display()
         
-    print("Got: ",string_data, " | ",scaled )
+    # print("Got: ",string_data, " | ",scaled )
         
 
 br_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
@@ -173,6 +192,8 @@ def main() -> None:
     global values
     global running
 
+    write_to_display()
+
     while running:
         #print(animations[values['Channel']])
         read_frames(animations[values['Channel']])
@@ -181,4 +202,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-    clear()
+    clear() 

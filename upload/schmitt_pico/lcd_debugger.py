@@ -22,11 +22,8 @@ def greeting():
     utime.sleep(2)
     lcd.clear()
 
-    
-
 
 def customcharacter():
-    
   #character      
   lcd.custom_char(0, bytearray([
   0x0E,

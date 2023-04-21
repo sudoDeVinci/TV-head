@@ -2,7 +2,7 @@
 To be able to control the globals  of the esp32 animations via potentiometers,
 The pi pico acts as a pseudo schmitt trigger for our analog values.
 The different steps/categories of change for each knob is on the other pico. 
-This pico is concerned with signalling the esp32 when the value of a knob changes
+This pico is concerned with signalling the other pico when the value of a knob changes
 drastically, causing an interrupt on the other pico.
 """
 from machine import Pin, ADC, UART
@@ -15,6 +15,7 @@ br_pot = ADC(28)
 sp_pot = ADC(27)
 an_pot = ADC(26)
 
+
 br_pin = Pin(10, Pin.OUT)
 sp_pin = Pin(11, Pin.OUT)
 an_pin = Pin(12, Pin.OUT)
@@ -25,13 +26,13 @@ out_pins = (
     ("Speed", sp_pin),
     ("Channel", an_pin))
 
-#pins = (["Speed", sp_pin],["Channel", an_pin])
 
 values = {
     "Brightness":0,
     "Speed":0,
     "Channel":0
     }
+
 
 ADC_PICO_UART = UART(1, 115200, 5, 4)
 ADC_PICO_UART.init()
@@ -103,7 +104,9 @@ def monitor() -> None:
 
     for pin in out_pins:
         pin[1].value(0)
-
+    
+    #print("Here!")
+    
     while True:
         br_avg = average_reading(br_pot, 50)
         compare("Brightness", br_avg)
