@@ -16,13 +16,13 @@ from lcd_api import LcdApi
 from pico_i2c_lcd import I2cLcd
 
 
-I2C_ADDR     = 39
-I2C_NUM_ROWS = 2
-I2C_NUM_COLS = 16
+#I2C_ADDR     = 39
+#I2C_NUM_ROWS = 2
+#I2C_NUM_COLS = 16
 
 
-i2c = I2C(1, sda=machine.Pin(26), scl=machine.Pin(27), freq=500000)
-lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
+#i2c = I2C(1, sda=machine.Pin(26), scl=machine.Pin(27), freq=500000)
+#lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
 
 
 br_pin = Pin(10, Pin.IN)
@@ -61,31 +61,13 @@ pins = (
 
 
 values = {
-  "Brightness" : 0.5,
+  "Brightness" : 0.10,
   "Speed" : 10,
   "Channel" : 0
   }
 
 def zfill(string:str, size:int = 0):
     return f"{(size-len(string))*'0'}{string}"
-
-
-def write_to_display():
-    global values
-    global lcd
-
-    lcd.clear()
-    
-    lcd.move_to(1, 0)
-    lcd.putstr("Channel")
-    lcd.move_to(13, 0)
-    lcd.putstr(f"{zfill(str(values['Channel']), 2)}")
-
-    lcd.move_to(1, 1)
-    lcd.putstr("Brightness: ")
-    lcd.move_to(13, 1)
-    lcd.putstr(f"{int(values['Brightness'] * 100)}")
-
 
 
 def recv():
@@ -132,19 +114,13 @@ def handle_interrupt(pin):
     
     int_data = int(int_data)
     if string_data == "Brightness":
-        scaled =  int_data/10000
+        int_data = int_data/20
     elif string_data == "Channel":
-        # scaled = map_to_range(int_data, animation_amount, True)
-        scaled = int_data%animation_amount
-    elif string_data == "Speed":
-        scaled = map_to_range(int_data, 5000, True)
-        if scaled == 0:
-            scaled = 10
-        
-    values[string_data] = scaled
-    write_to_display()
-        
-    # print("Got: ",string_data, " | ",scaled )
+        int_data = int_data%animation_amount
+
+    values[string_data] = int_data
+
+    print("Got: ",string_data, " | ",int_data )
         
 
 br_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
@@ -161,15 +137,6 @@ def read_frames(folder_path:str) -> list[list[int]]:
             with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
                 frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
             animate(frame)
-
-
-def map_to_range(input_value, range_max, is_int:bool = False):
-    scaled = ((input_value/10000)**10)*range_max
-
-    if is_int:
-        return int(scaled)
-    return scaled
-
 
 def clear():
     global display
@@ -192,12 +159,9 @@ def main() -> None:
     global values
     global running
 
-    write_to_display()
 
     while running:
-        #print(animations[values['Channel']])
         read_frames(animations[values['Channel']])
-        sleep_ms(values['Speed']*10)
   
 
 if __name__ == '__main__':

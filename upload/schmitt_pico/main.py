@@ -1,19 +1,94 @@
-"""
-To be able to control the globals  of the esp32 animations via potentiometers,
-The pi pico acts as a pseudo schmitt trigger for our analog values.
-The different steps/categories of change for each knob is on the other pico. 
-This pico is concerned with signalling the other pico when the value of a knob changes
-drastically, causing an interrupt on the other pico.
-"""
-from machine import Pin, ADC, UART
+# MIT License (MIT)
+# Copyright (c) 2020 Mike Teachman
+# Copyright (c) 2021 Eric Moyer
+# https://opensource.org/licenses/MIT
+
+# Platform-specific MicroPython code for the rotary encoder module
+# Raspberry Pi Pico implementation
+
+# Documentation:
+#   https://github.com/MikeTeachman/micropython-rotary
+
+from machine import Pin
+from rotary import Rotary
+
+IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
+
+
+class RotaryIRQ(Rotary):
+    def __init__(
+        self,
+        pin_num_clk,
+        pin_num_dt,
+        min_val=0,
+        max_val=10,
+        incr=1,
+        reverse=False,
+        range_mode=Rotary.RANGE_UNBOUNDED,
+        pull_up=False,
+        half_step=False,
+        invert=False
+    ):
+        super().__init__(min_val, max_val, incr, reverse, range_mode, half_step, invert)
+
+        if pull_up:
+            self._pin_clk = Pin(pin_num_clk, Pin.IN, Pin.PULL_UP)
+            self._pin_dt = Pin(pin_num_dt, Pin.IN, Pin.PULL_UP)
+        else:
+            self._pin_clk = Pin(pin_num_clk, Pin.IN)
+            self._pin_dt = Pin(pin_num_dt, Pin.IN)
+
+        self._hal_enable_irq()
+
+    def _enable_clk_irq(self):
+        self._pin_clk.irq(self._process_rotary_pins, IRQ_RISING_FALLING)
+
+    def _enable_dt_irq(self):
+        self._pin_dt.irq(self._process_rotary_pins, IRQ_RISING_FALLING)
+
+    def _disable_clk_irq(self):
+        self._pin_clk.irq(None, 0)
+
+    def _disable_dt_irq(self):
+        self._pin_dt.irq(None, 0)
+
+    def _hal_get_clk_value(self):
+        return self._pin_clk.value()
+
+    def _hal_get_dt_value(self):
+        return self._pin_dt.value()
+
+    def _hal_enable_irq(self):
+        self._enable_clk_irq()
+        self._enable_dt_irq()
+
+    def _hal_disable_irq(self):
+        self._disable_clk_irq()
+        self._disable_dt_irq()
+
+    def _hal_close(self):
+        self._hal_disable_irq()
+       
+       
+       
+       
+from machine import Pin, UART
 from time import sleep_ms
-import machine
-from math import sqrt, pow
+
+channel = RotaryIRQ(pin_num_clk=18,
+              pin_num_dt=19,
+              min_val=0,
+              max_val=20,
+              reverse=False,
+              range_mode=RotaryIRQ.RANGE_WRAP)
 
 
-br_pot = ADC(28)
-sp_pot = ADC(27)
-an_pot = ADC(26)
+brightness = RotaryIRQ(pin_num_clk=27,
+              pin_num_dt=26,
+              min_val=0,
+              max_val=20,
+              reverse=False,
+              range_mode=RotaryIRQ.RANGE_WRAP)
 
 
 br_pin = Pin(10, Pin.OUT)
@@ -27,15 +102,8 @@ out_pins = (
     ("Channel", an_pin))
 
 
-values = {
-    "Brightness":0,
-    "Speed":0,
-    "Channel":0
-    }
-
-
-ADC_PICO_UART = UART(1, 115200, 5, 4)
-ADC_PICO_UART.init()
+PICO_UART = UART(1, 115200, 5, 4)
+PICO_UART.init()
 
 
 def zfill(string:str, size:int = 0):
@@ -43,10 +111,11 @@ def zfill(string:str, size:int = 0):
 
 
 def send_over_UART(string_data:str, value:int):
+    #print(f"{string_data}\t: {value}")
     global ADC_PICO_UART
-    ADC_PICO_UART.write(zfill(string_data,19)+'\n')
+    PICO_UART.write(zfill(string_data,19)+'\n')
     sleep_ms(2)
-    ADC_PICO_UART.write(zfill(str(value), 19)+'\n')
+    PICO_UART.write(zfill(str(value), 19)+'\n')
 
 
 def signal(key:str):
@@ -56,64 +125,28 @@ def signal(key:str):
             sleep_ms(10)
             pin[1].value(0)
             break
+        
 
-    
-def compare(key:str, val2:int) -> None:
-    global values
-    if values[key]*0.80 <= val2 <= values[key]*1.2:
-        return
-    signal(key)
-    print(key,": ",str(val2))
-    values[key] = val2
-    send_over_UART(key, val2)
-    
-
-def average_reading(pin:Pin, amount:int):
-    readings = []
-    pin.read_u16()
-    for _ in range(amount):
-        readings.append(pin.read_u16())
-        sleep_ms(2)
-    
-    # Filter readings by standard deviation
-    std, mean=std_dev(readings)
-    u_b =  mean+(std*2)
-    l_b =  mean-(std*2)
-    filtered = tuple(reading for reading in readings if l_b<=reading<=u_b) 
-    average = int(sum(filtered)/len(filtered))
-    
-    # Map our logarithmic value to a linear range 0-1000
-    outrange = ((average/65535)**10)*10000
-
-    return int(outrange)
-
-
-def std_dev(readings):
-    #print("Readings: \n",readings)
-    mean = sum(readings)/len(readings)
-    #print("\nMean: ", mean)
-    sum_mean_delta_sq = sum((reading-mean)**2 for reading in readings)
-    std = sqrt(sum_mean_delta_sq/(len(readings)-1))
-
-    return std, mean
-
-
-def monitor() -> None:
-    global values
-    global out_pins
-
-    for pin in out_pins:
-        pin[1].value(0)
-    
-    #print("Here!")
+def monitor():
+    channel_old = channel.value()
+    brightness_old = brightness.value()
     
     while True:
-        br_avg = average_reading(br_pot, 50)
-        compare("Brightness", br_avg)
-        sp_avg = average_reading(sp_pot, 50)
-        compare("Speed", sp_avg)
-        an_avg = average_reading(an_pot, 50)
-        compare("Channel", an_avg)
+        channel_new = channel.value()
+        brightness_new = brightness.value()
+        
+        if channel_old != channel_new:
+            channel_old = channel_new
+            signal("Channel")
+            send_over_UART("Channel", channel_new)
+            print('Channel: ', channel_new)
+            
+        if brightness_old != brightness_new:
+            brightness_old = brightness_new
+            signal("Channel")
+            send_over_UART("Brightness", brightness_new)
+            print('Brightness: ', brightness_new)
+        
         sleep_ms(10)
 
 
