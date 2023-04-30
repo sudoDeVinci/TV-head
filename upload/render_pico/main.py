@@ -12,18 +12,6 @@ from time import sleep_ms
 from os import listdir, ilistdir
 from math import pow
 from random import randint
-from lcd_api import LcdApi
-from pico_i2c_lcd import I2cLcd
-
-
-#I2C_ADDR     = 39
-#I2C_NUM_ROWS = 2
-#I2C_NUM_COLS = 16
-
-
-#i2c = I2C(1, sda=machine.Pin(26), scl=machine.Pin(27), freq=500000)
-#lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
-
 
 br_pin = Pin(10, Pin.IN)
 sp_pin = Pin(11, Pin.IN)
@@ -75,7 +63,6 @@ def recv():
     while uart.any() < 40:
         pass
     
-    #print("BUFFER: ", uart.any())
     data = uart.readline()
     try:
         data = data.decode('utf-8')
@@ -112,7 +99,20 @@ def handle_interrupt(pin):
     if string_data is None or int_data is None:
         return
     
-    int_data = int(int_data)
+    # Try to convert integer portion
+    try:
+        int_data = int(int_data)
+    except Exception as e:
+        # It is sometimes the case that the data arrives OUT OF ORDER and our
+        # int and string data is swapped. We attempt to swap and convert them.
+        # If this does not work, simply say the data is worngly transmitted and continue.
+        try:
+            intermediate = int_data
+            int_data = int(string_data)
+            string_data= intermediate
+        except Exception as ex:
+            print("Data corrupt/wrong order.")
+            return
     if string_data == "Brightness":
         int_data = int_data/20
     elif string_data == "Channel":
@@ -161,9 +161,13 @@ def main() -> None:
 
 
     while running:
+        #print(f"Playing: {animations[values['Channel']]}")
         read_frames(animations[values['Channel']])
   
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:    
+        pass
     clear() 

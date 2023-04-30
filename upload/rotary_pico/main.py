@@ -111,7 +111,6 @@ def zfill(string:str, size:int = 0):
 
 
 def send_over_UART(string_data:str, value:int):
-    #print(f"{string_data}\t: {value}")
     global ADC_PICO_UART
     PICO_UART.write(zfill(string_data,19)+'\n')
     sleep_ms(2)
@@ -146,8 +145,8 @@ def monitor():
             signal("Channel")
             send_over_UART("Brightness", brightness_new)
             print('Brightness: ', brightness_new)
-        
-        sleep_ms(10)
+
+        sleep_ms(5)
 
 
 if __name__ == "__main__":

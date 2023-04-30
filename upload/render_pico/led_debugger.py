@@ -8,9 +8,8 @@ from sys import exit
 # Variable to keep running script or not.
 running = True
 
-
 # Pin numbers to address
-P = 13
+P = 15
 # Number of leds to address
 N = 96
 
