@@ -58,7 +58,7 @@ def realign(img:Mat, tw, th):
     
 
 # Convert and save a single image
-def convert_single_image(image:str, write_folder: str, target_dimensions:tuple[int,int]) -> None:
+def convert_single_image(image:str, write_folder: str, target_dimensions:tuple[int,int]) -> Mat:
 
     width, height = target_dimensions
     img = imread(image, IMREAD_COLOR)
@@ -66,7 +66,10 @@ def convert_single_image(image:str, write_folder: str, target_dimensions:tuple[i
     frame = []
     for i in range(len(img)):
         b,g,r = img[i]
-        frame.append((i, b,g,r))
+        if b !=0 or g!= 0 or r!= 0:
+            frame.append((i, b, g, r))
+
+        
     resolve_path_and_save(image, write_folder, frame)
     return img
 
@@ -132,7 +135,7 @@ def main() -> None:
     header = ['index', 'blue', 'green', 'red']
     # folder we write our folders of frames  to
 
-    convert_all("dev/images", 'upload/csvs/', (tw,th))
+    convert_all("dev/images", 'upload/render_pico/csvs/', (tw,th))
 
 
 if __name__ == "__main__":

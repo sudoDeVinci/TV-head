@@ -6,7 +6,7 @@ https://rose.systems/tv_head/
 """
 
 
-from machine import Pin, UART, I2C
+from machine import Pin, UART
 from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir, ilistdir
@@ -26,16 +26,16 @@ running = True
 #Folder for animation csvs
 animation_folder = "/csvs/"
 
-def get_animations(folder_path = animation_folder) -> list[str]:
-    folders = [animation_folder+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000]
+def get_animations(folder_path = animation_folder) -> tuple[str]:
+    folders = tuple(animation_folder+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
     return folders
 animations = get_animations()
 animation_amount = len(animations)-1
  
 # Pin number to address
-p = 15
+p = 16
 # Number of leds to address
-n = 96
+n = 100
 
 # Define display to draw to
 # Display is our array of leds.
@@ -161,7 +161,7 @@ def main() -> None:
 
 
     while running:
-        #print(f"Playing: {animations[values['Channel']]}")
+        print(f"Playing: {animations[values['Channel']]}")
         read_frames(animations[values['Channel']])
   
 
@@ -169,5 +169,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:    
-        pass
-    clear() 
+        print(e)
+        clear()
+     
