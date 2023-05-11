@@ -1,3 +1,4 @@
+
 """
 Boilerplate from :
 https://randomnerdtutorials.com/micropython-ws2812b-addressable-rgb-leds-neopixel-esp32-esp8266/
@@ -6,7 +7,7 @@ https://rose.systems/tv_head/
 """
 
 
-from machine import Pin, UART
+from machine import Pin, UART,freq
 from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir, ilistdir
@@ -19,6 +20,15 @@ an_pin = Pin(12, Pin.IN)
 
 uart = UART(1,115200, rx=Pin(5), tx=Pin(4))
 uart.init()
+
+# Attempt overclock for higher responsiveness
+try:
+    freq(200000000)
+    print("Core overclock applied succesfully!") 
+except Exception as e:
+    print("Core overclock not applied.")
+    
+print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 # Variable to keep running script or not.
 running = True
@@ -50,7 +60,7 @@ pins = (
 
 values = {
   "Brightness" : 0.10,
-  "Speed" : 10,
+  "Speed" : 40,
   "Channel" : 0
   }
 
@@ -58,6 +68,7 @@ def zfill(string:str, size:int = 0):
     return f"{(size-len(string))*'0'}{string}"
 
 
+# Receive value from rotary encoder via other pico
 def recv():
     global uart
     while uart.any() < 40:
@@ -117,7 +128,7 @@ def handle_interrupt(pin):
         int_data = int_data/20
     elif string_data == "Channel":
         int_data = int_data%animation_amount
-
+        clear()
     values[string_data] = int_data
 
     print("Got: ",string_data, " | ",int_data )
@@ -161,8 +172,9 @@ def main() -> None:
 
 
     while running:
-        print(f"Playing: {animations[values['Channel']]}")
+        #print(f"Playing: {animations[values['Channel']]}")
         read_frames(animations[values['Channel']])
+        sleep_ms(values["Speed"]*10)
   
 
 if __name__ == '__main__':

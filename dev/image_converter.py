@@ -103,7 +103,7 @@ def main() -> None:
     header = ['index', 'blue', 'green', 'red']
     # folder we write our folders of frames  to
 
-    convert_all("dev/images/", "upload/csvs/", (tw,th))
+    convert_all("dev/images/", "upload/render_pico/csvs/", (tw,th))
 
 
 if __name__ == "__main__":
