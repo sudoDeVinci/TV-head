@@ -9,7 +9,7 @@
 # Documentation:
 #   https://github.com/MikeTeachman/micropython-rotary
 
-from machine import Pin
+from machine import Pin, freq
 from rotary import Rotary
 
 IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
@@ -74,6 +74,15 @@ class RotaryIRQ(Rotary):
        
 from machine import Pin, UART
 from time import sleep_ms
+
+# Attempt overclock for higher responsiveness
+try:
+    freq(180000000)
+    print("Core overclock applied succesfully!") 
+except Exception as e:
+    print("Core overclock not applied.")
+    
+print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 channel = RotaryIRQ(pin_num_clk=18,
               pin_num_dt=19,

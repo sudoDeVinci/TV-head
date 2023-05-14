@@ -143,6 +143,7 @@ def read_frames(folder_path:str) -> list[list[int]]:
     global animations
     for filename in listdir(folder_path):
         if folder_path != animations[values['Channel']]:
+            clear()
             return
         if filename.endswith('.csv'):
             with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
