@@ -52,7 +52,7 @@ def snake(snake_length = 4, snake_colour = (50, 50, 50), ms = 30) -> None:
 
 
 def main() -> None:
-    for i in range(3):
-        snake(snake_colour=(250,150,250), ms=30)
+    for i in range(10):
+        snake(snake_colour=(150,150,250), ms=0)
         
 main()

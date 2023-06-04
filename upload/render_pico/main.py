@@ -61,7 +61,7 @@ pins = (
 values = {
   "Brightness" : 0.10,
   "Speed" : 40,
-  "Channel" : 0
+  "Channel" : 4
   }
 
 def zfill(string:str, size:int = 0):
