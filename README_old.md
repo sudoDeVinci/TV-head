@@ -15,7 +15,6 @@ My implementation aims more to be an alternate version of their mk1 design.
 - Rather than focusing on displaying text, this design aims to display pre-loaded images and animations.
 - Rather than adjusting settings via a physical keyboard connection, a webserver can be used to control animations with a threaded handler.
 
-
 ### Structure
 
 Files within the [upload](/upload/) folder are meant to be uploaded to the board.
