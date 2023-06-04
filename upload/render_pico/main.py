@@ -55,14 +55,11 @@ display = NeoPixel(Pin(p), n, timing = 1)
 pins = (
     (br_pin,"Brightness"),
     (sp_pin,"Speed"),
-    (an_pin,"Channel"))
+    (an_pin,"Channel")
+)
 
 
-values = {
-  "Brightness" : 0.10,
-  "Speed" : 40,
-  "Channel" : 4
-  }
+
 
 def zfill(string:str, size:int = 0):
     return f"{(size-len(string))*'0'}{string}"

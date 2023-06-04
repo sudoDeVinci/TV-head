@@ -101,6 +101,25 @@ Now we flatten the array for easier comparison/iteration later on.
 img.reshape(-1, img.shape[-1])
 ```
 
+### Global Rendering Variables
+To be able to change global values such as the surrent brightness, channel, and speed, we keep them in a dictionary with their values.
+```python
+values = {
+  "Brightness" : 0.10,
+  "Speed" : 40,
+  "Channel" : 4
+  }
+```
+Each of these has an interrupt pin associated with it. These are kept in a tupe of tuples
+```python
+pins = (
+    (br_pin,"Brightness"),
+    (sp_pin,"Speed"),
+    (an_pin,"Channel")
+)
+```
+These global values are changed via an interrupt on on of these pins. A packet containing the field changing and value is transmitted over UART from the other pico as a padded string. It's read and assigned accordingly in handle_interrupt(). Its is accessedin places such as animate() to calculate brightness.
+
 ### Addressing a WS2812 LED Dot-Matrix
 
 To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html) library:
@@ -126,3 +145,54 @@ Individual LEDs are addressed by their index in the strip, and can be set to a s
 # To set LED i to (0, 0, 0):
 display[i] = (0, 0, 0)  
 ```
+
+#### Displaying an Image
+
+To display an image, we build the frame as a tuple of the pixel information, then send it to **animate()**.
+**NOTE:** A threaded queue of frames would be preferred here, but that's for future implementation.
+
+Firstly we get a tuple of paths to our various animation folders.
+```python
+from os import listdir
+def get_animations(folder_path = animation_folder) -> tuple[str]:
+  folders = tuple(animation_folder+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
+  return folders
+animations = get_animations()
+animation_amount = len(animations)-1
+```
+
+We read the current aniamtion index according to the value in the global dictionary. In main we call it like so:
+
+```python
+while running:
+  read_frames(animations[values['Channel']])
+  sleep_ms(values["Speed"]*10)
+```
+
+In read_frames(), we check the current animation index to the folder being iterated over, in case the interrupt was already called. Then we compile the current frame from the next csvfile in our folder.
+
+```python
+def read_frames(folder_path:str) -> list[list[int]]:
+  global animations
+  for filename in listdir(folder_path):
+    if folder_path != animations[values['Channel']]:
+      clear()
+      return
+    if filename.endswith('.csv'):
+      with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+        frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
+      animate(frame)
+```
+To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
+We skip the first item in the list because it's the header for the csv file (above). For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear. So here, to turn down the brightness, we simply have a brightness coefficient from 0.0 to ~0.8 as our global value changed via interrupt. This way, our final brightness is gotten by a simple multiplication:
+
+```python
+def animate(frame) -> None:
+    global dispaly
+    b = values["Brightness"]
+    for p in frame[1:]:
+        display[int(p[0])] = (int(int(p[3])*b), int(int(p[2])*b), int(int(p[1])*b))
+    display.write()
+    sleep_ms(values["Speed"])
+```
+
