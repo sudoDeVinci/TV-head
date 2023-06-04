@@ -91,12 +91,12 @@ from machine import Pin
 from neopixel import NeoPixel
 
 # Pin numbers to address
-p = 5
+p = 16
 # Number of leds to address
-n = 96
+n = 100
 # Define display to draw to
 # Display is our array of leds.
-display = NeoPixel(Pin(p), n)
+display = NeoPixel(Pin(p), n, timing = 1)
 ```
 
 #### Addressing Individual LEDs
