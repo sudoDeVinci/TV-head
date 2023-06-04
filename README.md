@@ -45,7 +45,7 @@ The wiring of the leds is the same as the original made by Vivian. Don't fix wha
 
 The basics of the entire system are shown here, with the only change being the use of linear encoders instead of potentiometers:
 <br></br>
-<img src='media/full_wiring.png' alt="MarineGEO circle logo" style="height: 300px; width:500px;"/>
+<img src='media/full_wiring.PNG' alt="MarineGEO circle logo" style="height: 300px; width:500px;"/>
 <br></br>
 
 ### Materials
