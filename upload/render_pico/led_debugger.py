@@ -9,9 +9,9 @@ from sys import exit
 running = True
 
 # Pin numbers to address
-P = 16
+P = 21
 # Number of leds to address
-N = 100
+N = 160
 
 # Define display to draw to
 # Display is our array of leds.
