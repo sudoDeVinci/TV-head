@@ -1,5 +1,7 @@
 # TV Head
 
+## README IS NOT UP TO DATE - OPTIMIZATION MADE
+
 ## What it is
 
 This is the software behind my Tv Head coslay made for Närcon Summer 2023 using WS2812 LED strips as a dot matrix diplay to show various animations and images on the face.
