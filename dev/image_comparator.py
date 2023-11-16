@@ -100,6 +100,13 @@ def convert_images(images:list(), write_folder: str, target_dimensions:tuple[int
             if len(changes) > 0:
                 resolve_path_and_save(new_frame_path, write_folder, changes)
 
+        else:
+            # Need to add arbitrary frame with only one pixel so that frame pacing can be kept.
+            b,g,r = new_frame[0]
+            changes.append((0, b,g,r))
+            resolve_path_and_save(new_frame_path, write_folder, changes)
+            
+
         # Make old frame the new frame.
         old_frame = new_frame
 

@@ -120,11 +120,11 @@ def zfill(string:str, size:int = 0):
 
 
 def send_over_UART(string_data:str, value:int):
-    global ADC_PICO_UART
-    PICO_UART.write(zfill(string_data,19)+'\n')
-    sleep_ms(2)
-    PICO_UART.write(zfill(str(value), 19)+'\n')
-
+    #global ADC_PICO_UART
+    #PICO_UART.write(zfill(string_data,19)+'\n')
+    #sleep_ms(2)
+    #PICO_UART.write(zfill(str(value), 19)+'\n')
+    print(string_data)
 
 def signal(key:str):
     for pin in out_pins:

@@ -22,7 +22,7 @@ ANIMATION_FOLDER = "/csvs/"
 # Pin number to address
 P = 21
 # Number of leds to address
-N = 160
+N = 96
 
 # Define display to draw to
 # Display is our array of leds.
@@ -129,7 +129,7 @@ def main() -> None:
     global RUNNING
 
     animations = tuple(read_frames(folder) for folder in animation_paths)
-
+    print(free())
     while RUNNING:
         animate(animations[values['Channel']])
         sleep_ms(values["Speed"]*5000)
