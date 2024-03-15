@@ -1,6 +1,7 @@
 # TV Head
 
 ## README IS NOT UP TO DATE - RENDERING CHANGES MADE
+An updated version with Arduino support is [HERE](https://github.com/sudoDeVinci/ws2812b)
 
 ## What it is
 
