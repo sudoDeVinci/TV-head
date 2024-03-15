@@ -10,175 +10,135 @@ https://rose.systems/tv_head/
 from machine import Pin, UART,freq
 from neopixel import NeoPixel
 from time import sleep_ms
-from os import listdir, ilistdir
+from os import listdir, ilistdir, statvfs
 from math import pow
 from random import randint
+import gc
 
-br_pin = Pin(10, Pin.IN)
-sp_pin = Pin(11, Pin.IN)
-an_pin = Pin(12, Pin.IN)
+# If debug is True, our debug lines throughtout the code will print. Otherwise, do nothing
+DEBUG:bool = False
+def out01(x:str) -> None:
+    pass
+def out02(x:str) -> None:
+    pass
+debug = out01 if DEBUG else out02
 
-uart = UART(1,115200, rx=Pin(5), tx=Pin(4))
-uart.init()
+# Variables to define constant labels
+BRIGHTNESS = "Brightness"
+CHANNEL = "Channel"
+SPEED = "Speed"
+
+# Variable to keep running script or not.
+RUNNING:bool = True
+
+# Folder for animation csvs
+ANIMATION_FOLDER:str = "/csvs/"
+
+# Pin number to address
+P = 16
+# Number of leds to address
+N = 160
+
+# Define display to draw to
+# Display is our array of leds.
+display = NeoPixel(Pin(P), N, timing = 1)
+
 
 # Attempt overclock for higher responsiveness
 try:
     freq(200000000)
-    print("Core overclock applied succesfully!") 
+    debug("Core overclock applied succesfully!") 
 except Exception as e:
-    print("Core overclock not applied.")
+    debug("Core overclock not applied.")
     
-print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
+debug(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
-# Variable to keep running script or not.
-running = True
-
-#Folder for animation csvs
-animation_folder = "/csvs/"
-
-def get_animations(folder_path = animation_folder) -> tuple[str]:
-    folders = tuple(animation_folder+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
+def get_animation_paths(folder_path = ANIMATION_FOLDER) -> tuple[str]:
+    """
+    Get a tuple of the animation folder paths.
+    """
+    folders = tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
     return folders
-animations = get_animations()
-animation_amount = len(animations)-1
- 
-# Pin number to address
-p = 16
-# Number of leds to address
-n = 100
 
-# Define display to draw to
-# Display is our array of leds.
-display = NeoPixel(Pin(p), n, timing = 1)
+animation_paths = get_animation_paths()
+animation_amount = len(animation_paths)
+animations = list()
 
-
-pins = (
-    (br_pin,"Brightness"),
-    (sp_pin,"Speed"),
-    (an_pin,"Channel")
-)
-
-
-
-
-def zfill(string:str, size:int = 0):
-    return f"{(size-len(string))*'0'}{string}"
-
-
-# Receive value from rotary encoder via other pico
-def recv():
-    global uart
-    while uart.any() < 40:
-        pass
-    
-    data = uart.readline()
-    try:
-        data = data.decode('utf-8')
-        if '\n' in data:
-            data = data.rstrip('\n')
-            string = data.replace('X', '')
-        #print("Got: ", data.replace('X', ''))
-    except Exception as e:
-        print("Couldn't decode ", data)
-        return (None,None)
-        
-    sleep_ms(5)
-    
-    data = uart.readline()
-    try:
-        data = data.decode('utf-8')
-        if '\n' in data:
-            data = data.rstrip('\n')
-            value = data.replace('X', '')
-        #print("Got: ", data.replace('X', ''))
-    except Exception as e:
-        print("Couldn't decode ", data)
-        return (None,None)
-    
-    return (string, value)
-
-
-def handle_interrupt(pin):
-    global pins
-    global values
-    global animation_amount
-    
-    string_data, int_data = recv()
-    if string_data is None or int_data is None:
-        return
-    
-    # Try to convert integer portion
-    try:
-        int_data = int(int_data)
-    except Exception as e:
-        # It is sometimes the case that the data arrives OUT OF ORDER and our
-        # int and string data is swapped. We attempt to swap and convert them.
-        # If this does not work, simply say the data is worngly transmitted and continue.
-        try:
-            intermediate = int_data
-            int_data = int(string_data)
-            string_data= intermediate
-        except Exception as ex:
-            print("Data corrupt/wrong order.")
-            return
-    if string_data == "Brightness":
-        int_data = int_data/20
-    elif string_data == "Channel":
-        int_data = int_data%animation_amount
-        clear()
-    values[string_data] = int_data
-
-    print("Got: ",string_data, " | ",int_data )
-        
-
-br_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-sp_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-an_pin.irq(trigger=Pin.IRQ_RISING, handler=handle_interrupt)
-
+values = {
+    BRIGHTNESS: 0.25,
+    SPEED: 1,
+    CHANNEL: 3
+}
 
 def read_frames(folder_path:str) -> list[list[int]]:
+    """
+    Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
+    """
     global animations
+    global animation_paths
+    frames = []
     for filename in listdir(folder_path):
-        if folder_path != animations[values['Channel']]:
-            clear()
-            return
         if filename.endswith('.csv'):
             with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-                frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
-            animate(frame)
+                """
+                Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+                """
+                next(csvfile)
+                
+                frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+                frames.append(frame)
+    
+    return frames
 
-def clear():
+def clear() -> None:
+    """
+    Clear the display.
+    """
     global display
     display.fill((0,0,0))
-    display.write()       
-
-
-# Play frames with a set time interval in ms.
-def animate(frame) -> None:
-    global dispaly
-    b = values["Brightness"]
-    for p in frame[1:]:
-        display[int(p[0])] = (int(int(p[3])*b), int(int(p[2])*b), int(int(p[1])*b))
     display.write()
-    sleep_ms(values["Speed"])
+
+def animate(frames) -> None:
+    """
+    Play frames with a set time interval in ms.
+    """
+    global display
+    global values
+    global SPEED
+    
+    for frame in frames:
+        b = values[BRIGHTNESS]
+        c = values[CHANNEL]
+        for p in frame:
+            display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
+        display.write()
+        if b != values[BRIGHTNESS] or c!= values[CHANNEL]:
+            values[SPEED] = 0
+            return False
+        sleep_ms(values[SPEED]*10)
+    return True
+        
 
 
 def main() -> None:
     global animations
     global values
-    global running
+    global RUNNING
+    global SPEED
 
+    animations = tuple(read_frames(folder) for folder in animation_paths)
+    while RUNNING:
+        if animate(animations[values[CHANNEL]]):
+            sleep_ms(values[SPEED]*randint(200, 5000))
 
-    while running:
-        #print(f"Playing: {animations[values['Channel']]}")
-        read_frames(animations[values['Channel']])
-        sleep_ms(values["Speed"]*10)
+        
   
 
 if __name__ == '__main__':
     try:
+        clear()
         main()
     except Exception as e:    
-        print(e)
+        debug(e)
         clear()
      
