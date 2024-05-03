@@ -17,6 +17,6 @@ My implementation aims more to be an alternate version of their mk1 design:
 - Display pre-loaded images and animations, rather than text.
 - Adjusting settings via knobs on the front of the face rather than a wired keyboard.
 
-version 1.0 | version 2.0
-:-----------------------------------:|:------------------------------------:|
-<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | 
+version 1.0 | version 2.0 | version 3.0
+:-----------------------------------:|:------------------------------------:|:------------------------------------:|
+<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/v3_34.PNG' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
