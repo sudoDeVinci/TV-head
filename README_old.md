@@ -105,7 +105,7 @@ img.reshape(-1, img.shape[-1])
 ```
 
 ### Global Rendering Variables
-To be able to change global values such as the surrent brightness, channel, and speed, we keep them in a dictionary with their values.
+To be able to change global values such as the current brightness, channel, and speed, we keep them in a dictionary with their values.
 ```python
 values = {
   "Brightness" : 0.10,
@@ -113,7 +113,7 @@ values = {
   "Channel" : 4
   }
 ```
-Each of these has an interrupt pin associated with it. These are kept in a tupe of tuples
+Each of these has an interrupt pin associated with it. These are kept in a Tuple of tuples
 ```python
 pins = (
     (br_pin,"Brightness"),
