@@ -19,7 +19,7 @@ My implementation aims more to be an alternate version of their mk1 design:
 
 version 1.0 | version 2.0 | version 3.0
 :-----------------------------------:|:------------------------------------:|:------------------------------------:|
-<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height:300px; width:200px;"/> | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 300px; width:200px;"/> | <img src='media/v3_34.PNG' alt="MarineGEO circle logo" style="height: 300px; width:200px;"/>
+<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height:400px; width:300px;"/> | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/v3_34.PNG' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
 
 ### Hardware structure
 
