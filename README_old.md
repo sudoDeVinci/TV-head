@@ -1,29 +1,55 @@
 # TV Head
 
+## README IS NOT UP TO DATE - RENDERING CHANGES MADE
+An updated version with Arduino support is [HERE](https://github.com/sudoDeVinci/ws2812b)
+
 ## What it is
 
-This is the software behind my Tv Head cosplay made for 2023 Winter NarconS using ws2812 LED strips as a dot-matrix display to show various animations and images on the face.
+This is the software behind my Tv Head coslay made for Närcon Summer 2023 using WS2812 LED strips as a dot matrix diplay to show various animations and images on the face.
 
 While I had wanted to do this cosplay for a while, the technical details were modified from [Vivian Thomas'](https://rose.systems) implementation found [here](https://rose.systems/tv_head/).
 
-My implementation aims more to be an alternate version of their mk1 design.
-
+My implementation aims more to be an alternate version of their mk1 design:
+<br></br>
+<img src='media/vivan.jpg' alt="MarineGEO circle logo" style="height: 300px; width:300px;"/>
+<br></br>
 - Rather than use diagonal strips, simply using thinner strips.
 - Making the design more user servicable and beginner friendly by:
   - Including fewer parts
   - Being written in MicroPython.
 - Rather than focusing on displaying text, this design aims to display pre-loaded images and animations.
-- Rather than adjusting settings via a physical keyboard connection, a webserver can be used to control animations with a threaded handler.
+- Rather than adjusting settings via a physical keyboard connection, a small webserver, as well as knobs on the front of the face can be used.
 
-### Structure
+The finished version 1.0 was done in time for Närcon Winter 2023 and can be seen here:
+<br></br>
+<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+<br></br>
+
+The finished version 2.0 was done in time for Närcon Summer 2023 and can be seen here:
+<br></br>
+<img src='media/new_pose.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+<br></br>
+
+### Repo Structure
 
 Files within the [upload](/upload/) folder are meant to be uploaded to the board.
-Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/image_converter.py).
-Files within [utility](/utility/) are utility scripts for easy use of any ESP32 board if you prefer that. These are: 
+Files within [dev](/dev/) are to remain on the computer. These hold the images and image-csv [converter](/dev/image_comparator.py).Files within [utility](/utility/) are utility scripts for easy use of any ESP32 board if you prefer that. These are: 
 - [clearing the board's memory](/utility/clear_all.py) 
 - [uploading all files](/utility/update_all.py) 
 - [updating the csvs](/utility/update_csvs.py) 
 - [viewing the board's file structure](/utility/view_files.py)
+
+### Hardware structure
+
+The wiring of the leds is the same as the original made by Vivian. Don't fix what's not broken. an example can be seen below:
+<br></br>
+<img src='media/wiring.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+<br></br>
+
+The basics of the entire system are shown here, with the only change being the use of linear encoders instead of potentiometers:
+<br></br>
+<img src='media/full_wiring.PNG' alt="MarineGEO circle logo" style="height: 300px; width:500px;"/>
+<br></br>
 
 ### Materials
 
@@ -60,15 +86,11 @@ Where **index** here is that of the pixel the value is read from. Images are res
 Alike images and frames of animations are kept within the same folder. Eg: The [upload](upload/csvs/blink) folder contains frames of a blinking animation.
 
 Csvs are created as either the change in pixels from the last frame via [Image Comparator](/dev/image_comparator.py) *(Recommended)*, or directly converted to csvs using [Image Converter](/dev/image_converter.py). The difference is in the first case, only the pixels changed between frames are rendered, whereas the second case requires clearing the screen and re-rendering the entire image regardless of frame-to-frame similarity. 
-The first case therefore saves memory, disk space, and CPU cycles, as well as reducing flicker on larger disaplays from clearing, and is the default for operation.
+The first case therefore saves memory, disk space, and CPU cycles, as well as reducing flicker on larger displays from clearing, and is the default for operation.
 
 #### Adjusting for Wiring Format
 
 To allow for wiring similar to Vivan's implementation , we must adjust the conversion to account for the reversal of every other row in the display.
-My wiring can be seen below against the 3D printed frame and light diffuser:
-
-![wiring](media/wiring.jpg)
-
 Every other row in the display is upside-down, which is the same as it simply being backwards. To account for this, we simply iterate through every other row of the image array, calling np.flip() along the row axis.
 
 ```python
@@ -81,6 +103,25 @@ Now we flatten the array for easier comparison/iteration later on.
 ```python
 img.reshape(-1, img.shape[-1])
 ```
+
+### Global Rendering Variables
+To be able to change global values such as the surrent brightness, channel, and speed, we keep them in a dictionary with their values.
+```python
+values = {
+  "Brightness" : 0.10,
+  "Speed" : 40,
+  "Channel" : 4
+  }
+```
+Each of these has an interrupt pin associated with it. These are kept in a tupe of tuples
+```python
+pins = (
+    (br_pin,"Brightness"),
+    (sp_pin,"Speed"),
+    (an_pin,"Channel")
+)
+```
+These global values are changed via an interrupt on on of these pins. A packet containing the field changing and value is transmitted over UART from the other pico as a padded string. It's read and assigned accordingly in handle_interrupt(). Its is accessedin places such as animate() to calculate brightness.
 
 ### Addressing a WS2812 LED Dot-Matrix
 
@@ -113,50 +154,48 @@ display[i] = (0, 0, 0)
 To display an image, we build the frame as a tuple of the pixel information, then send it to **animate()**.
 **NOTE:** A threaded queue of frames would be preferred here, but that's for future implementation.
 
+Firstly we get a tuple of paths to our various animation folders.
 ```python
 from os import listdir
+def get_animations(folder_path = animation_folder) -> tuple[str]:
+  folders = tuple(animation_folder+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
+  return folders
+animations = get_animations()
+animation_amount = len(animations)-1
+```
 
+We read the current aniamtion index according to the value in the global dictionary. In main we call it like so:
+
+```python
+while running:
+  read_frames(animations[values['Channel']])
+  sleep_ms(values["Speed"]*10)
+```
+
+In read_frames(), we check the current animation index to the folder being iterated over, in case the interrupt was already called. Then we compile the current frame from the next csvfile in our folder.
+
+```python
 def read_frames(folder_path:str) -> list[list[int]]:
+  global animations
   for filename in listdir(folder_path):
+    if folder_path != animations[values['Channel']]:
+      clear()
+      return
     if filename.endswith('.csv'):
       with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
         frame = tuple((line.rstrip('\n').rstrip('\r').split(",")) for line in csvfile)
-      animate(frame[1:])
+      animate(frame)
 ```
-
-This will give us a 3D array of pixel values.
-
-##### Simple display
-
 To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
-We skip the first item in the list because it's the header for the csv file (above):
+We skip the first item in the list because it's the header for the csv file (above). For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear. So here, to turn down the brightness, we simply have a brightness coefficient from 0.0 to ~0.8 as our global value changed via interrupt. This way, our final brightness is gotten by a simple multiplication:
 
 ```python
-# Play frames with a set time interval in ms.
-def animate(frame, sleep:int = 25) -> None:
-    for p in frame:
-      display[int(p[0])] = (int(p[3]), int(p[2]), int(p[1]))
+def animate(frame) -> None:
+    global dispaly
+    b = values["Brightness"]
+    for p in frame[1:]:
+        display[int(p[0])] = (int(int(p[3])*b), int(int(p[2])*b), int(int(p[1])*b))
     display.write()
-    # sleep_ms(sleep)
+    sleep_ms(values["Speed"])
 ```
-
-The problem with this however, is that unless an LED is explicitly turned off, it will persist to the next frame. We must be able to  clear our frame before drawing the next one.
-While setting the display to a single value can be done iteratively, the Neopixel library provides the **.fill()** for this. This allows us an easy way to clear the display:
-
-```python
-display.fill((0, 0, 0,))
-display.write()
-```
-
-
-##### Brightness
-
-For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear.
-Due to the brightness of the LEDS, I turned their brightness down a considerable amount via the following:
-
-
-##### Debuggging
-
-The main error when constructing this was incorrect wiring/addressing LED indexes. The [debuger script](upload/debugger.py) was constructed to check this by showing the wiring configuration with a small light bar of variable size and colour bouncin back and forth along the rows.
-
 
