@@ -177,3 +177,4 @@ We skip the first item in the list because it's the header for the csv file. For
 
 ```
 
+We go out of our way here to pretty much always use Tuples rather than Lists for memory savings. We wont be changing the frames and their details once loaded, unless we change the channel, in which cause we scrap them all at once anyway. Image paths as well are basically constant once loaded. The immutability is a plus-side, and it allows for faster looping and less computational overhead for certain operations which become much more pronounced on a tiny MCU like a Pi Pico.
