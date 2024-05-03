@@ -9,7 +9,6 @@ def _find_digit_bound(filename: str) -> tuple[bool, int] | tuple[bool, None]:
     Find the ending digit of a filename.
     If found, return true and the number.
     """
-    #filename = filename[:-4]
     for i in range(1, len(filename)):
         i = 0-i
         if filename[i].isdigit():
