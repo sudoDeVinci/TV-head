@@ -23,7 +23,7 @@ version 1.0 | version 2.0 | version 3.0
 
 ### Hardware structure
 
-The wiring of the leds is the same as the original made by Vivian. Don't fix what's not broken. an example can be seen below:
+The wiring of the LEDs is the same as the original made by Vivian. Don't fix what's not broken. an example can be seen below:
 <br></br>
 <img src='media/wiring.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
 <br></br>
@@ -43,10 +43,12 @@ This implementation allows having folders of sequential csv files which can be m
 We move through all sub-directories in the [animations folder](animations/), converting each into a csv with a corresponding path within the [csv folder](csvs/) to the form:
 
 ```csv
+
 index,red,green,blue
 13,153,217,234
 14,153,217,234
 20,153,217,234
+
 ```
 
 Where **index** here is that of the pixel the value is read from. Images are resized according to the resolution stored in [conf.toml](conf.toml) if needed. 
@@ -72,6 +74,106 @@ Now we flatten the array for easier comparison/iteration later on.
 ```Python
 
   img.reshape(-1, img.shape[-1])
+
+```
+
+### Global Rendering Variables
+
+To be able to change global values such as the current brightness, channel, and speed, we keep them in a dictionary with their values.
+```Python
+
+  values = {
+    "Brightness": 0.4,
+    "Speed": 1,
+    "Channel": 0
+  }
+
+```
+
+### Addressing a WS2812 LED Dot-Matrix
+
+To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/latest/esp8266/tutorial/neopixel.html) library:
+
+```Python
+
+from machine import Pin
+from neopixel import NeoPixel
+
+# Pin number to address
+P = 21
+# Number of leds to address
+N = 96
+
+# Define display to draw to
+# Display is our array of leds.
+display = NeoPixel(Pin(P), N, timing = 1)
+
+```
+
+#### Addressing Individual LEDs
+
+Individual LEDs are addressed by their index in the strip, and can be set to a specified RGB value with each colour channel as an element in a tuple:
+
+```Python
+
+# To set LED i to (0, 0, 0):
+display[i] = (0, 0, 0)  
+
+```
+#### Displaying an Image
+
+To display an image, we build the frame as a tuple of the pixel information, then send it to **animate()**.
+**NOTE:** A threaded queue of frames would be preferred here, but that's for future implementation.
+
+Firstly we get all the frames for the current animation playing:
+
+```Python
+
+  def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
+      """
+      Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
+      """
+      def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
+          with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+              """
+              Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+              """
+              next(csvfile)
+              frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+              return frame
+                  
+      frames = tuple(assemble(filename) for filename in listdir(folder_path) if filename.endswith('.csv'))
+      
+      return frames
+  
+```
+
+We read the current animation index according to the value in the global dictionary. In main we call it like so:
+
+```Python
+
+  while RUNNING:
+          animate(animations[values['Channel']])
+          sleep_ms(values["Speed"]*5000)
+
+```
+
+To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
+We skip the first item in the list because it's the header for the csv file. For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear. So here, to turn down the brightness, we simply have a brightness coefficient from 0.0 to ~0.8 as our global value changed via interrupt. This way, our final brightness is gotten by a simple multiplication:
+
+```Python
+
+  def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
+      """
+      Play frames with a set time interval in ms.
+      """
+      global display
+      b = values["Brightness"]
+      for frame in frames:
+          for p in frame:
+              display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
+          display.write()
+          sleep_ms(values["Speed"]*20)
 
 ```
 

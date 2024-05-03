@@ -5,11 +5,13 @@ Idea from:
 https://rose.systems/tv_head/
 """
 
+from ast import Tuple
 from machine import Pin, UART,freq
 from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir, ilistdir, statvfs
 from math import pow
+from typing import List, Tuple, Dict, Callable, Any, Union, Optional
 from random import randint
 import gc
 
@@ -42,7 +44,7 @@ except Exception as e:
 print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 
-def get_animation_paths(folder_path = ANIMATION_FOLDER) -> tuple[str]:
+def get_animation_paths(folder_path:str = ANIMATION_FOLDER) -> tuple[str]:
     """
     Get a tuple of the animation folder paths.
     """
@@ -53,29 +55,26 @@ animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)-1
 animations = list()
 
-values = {
+values: Dict[str, float] = {
     "Brightness": 0.4,
-    "Speed": 1,
-    "Channel": 0
+    "Speed": 1.0,
+    "Channel": 0.0
 }
 
-def read_frames(folder_path:str) -> list[list[int]]:
+def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
     """
     Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
     """
-    global animations
-    global animation_paths
-    frames = []
-    for filename in listdir(folder_path):
-        if filename.endswith('.csv'):
-            with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-                """
-                Skip the first line so we can directly convert each line to tuple[int, int, int, int].
-                """
-                next(csvfile)
+    def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
+        with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+            """
+            Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+            """
+            next(csvfile)
+            frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+            return frame
                 
-                frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-                frames.append(frame)
+    frames = tuple(assemble(filename) for filename in listdir(folder_path) if filename.endswith('.csv'))
     
     return frames
 
@@ -88,7 +87,7 @@ def clear() -> None:
     display.write()
 
 
-def df():
+def df() -> str:
     """
     Checking file space free similar to Unix df.
     """
@@ -96,7 +95,7 @@ def df():
     return ('{0} MB'.format((s[0]*s[3])/1048576))
 
 
-def free(full=False):
+def free(full=False)-> str:
     """
     Return free RAM as a percentage.
     """
@@ -110,7 +109,7 @@ def free(full=False):
     else : return ('Total:{0} Free:{1} ({2})'.format(T,F,P))     
 
 
-def animate(frames) -> None:
+def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
     """
     Play frames with a set time interval in ms.
     """

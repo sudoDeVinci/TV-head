@@ -164,7 +164,7 @@ animations = get_animations()
 animation_amount = len(animations)-1
 ```
 
-We read the current aniamtion index according to the value in the global dictionary. In main we call it like so:
+We read the current animation index according to the value in the global dictionary. In main we call it like so:
 
 ```python
 while running:
