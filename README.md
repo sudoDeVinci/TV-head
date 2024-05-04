@@ -7,9 +7,13 @@ This is the software behind my Tv Head cosplay made for Närcon Summer 2023 usin
 While I had wanted to do this cosplay for a while, the technical details were modified from [Vivian Thomas'](https://rose.systems) implementation found [here](https://rose.systems/tv_head/).
 
 My implementation aims more to be an alternate version of their mk1 design:
-<br></br>
-<img src='media/vivan.jpg' alt="MarineGEO circle logo" style="height: 300px; width:300px;"/>
-<br></br>
+
+Front view | Inside
+:-----------------------------------:|:------------------------------------:|
+<img src='media/vivan.jpg' alt="MarineGEO circle logo" style="height: 300px; width:300px;"/> |<img src='media/vivian-back-panel.jpg' alt="MarineGEO circle logo" style="height: 300px; width:300px;"/>
+
+<br>
+
 - Rather than use diagonal strips, simply using thinner strips.
 - Making the design more user serviceable and beginner friendly by:
   - Including fewer parts
@@ -17,17 +21,26 @@ My implementation aims more to be an alternate version of their mk1 design:
 - Display pre-loaded images and animations, rather than text.
 - Adjusting settings via knobs on the front of the face rather than a wired keyboard.
 
-version 1.0 | version 2.0 | version 3.0
+<br>
+
+Version | Finished | Face-Plate
 :-----------------------------------:|:------------------------------------:|:------------------------------------:|
-<img src='media/pose.jpg' alt="MarineGEO circle logo" style="height:300px; width:200px;"/> | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 300px; width:200px;"/> | <img src='media/v3_34.PNG' alt="MarineGEO circle logo" style="height: 300px; width:200px;"/>
+Version 1.0 | <img src='media/pose.jpg' alt="MarineGEO circle logo" style="height:400px; width:300px;"/> | <img src='media/IMG_8059.png' alt="MarineGEO circle logo" style="height:400px; width:300px;"/>
+Version 2.0 | <img src='media/single_suit.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/IMG_0095.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+Version 3.0 | <img src='media/v3_34.PNG' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/> | <img src='media/IMG_0185.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+Version 3.5 | <img src='media/IMG_0134.gif' alt="MarineGEO circle logo" style="height: 450px; width:300px;"/> | <img src='media/IMG_9166.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+
+<br>
 
 ### Hardware structure
 
 The wiring of the LEDs is the same as the original made by Vivian. Don't fix what's not broken. an example can be seen below:
-<br></br>
-<img src='media/wiring.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
-<br></br>
 
+<br>
+
+<img src='media/wiring.jpg' alt="MarineGEO circle logo" style="height: 400px; width:300px;"/>
+
+<br>
 
 ## How it Works 
 
@@ -54,7 +67,7 @@ index,red,green,blue
 Where **index** here is that of the pixel the value is read from. Images are resized according to the resolution stored in [conf.toml](conf.toml) if needed. 
 Alike images and frames of animations are kept within the same folder. Eg: The [Blink](/csvs/blink/) folder contains frames of a blinking animation.
 
-Csvs are created as the change in pixels from the last frame via [Image Comparator](/dev/image_comparator.py), such that only the pixels changed between frames are rendered. This saves memory, disk space, and CPU cycles, as well as reducing flicker on larger displays from clearing, and is the default for operation.
+Csvs are created as the change in pixels from the last frame via the [Image Comparator](tvlib/comparator.py), such that only the pixels changed between frames are rendered. This saves memory, disk space, and compute, as well as reducing flicker on larger displays from clearing, and is the default for operation.
 
 
 #### Adjusting for Wiring Format
