@@ -12,6 +12,7 @@ from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir, ilistdir, statvfs
 from math import pow
+from typing import List, Tuple, Dict, Callable, Any, Union, Optional
 from random import randint
 import gc
 
@@ -43,8 +44,11 @@ N = 160
 # Display is our array of leds.
 display = NeoPixel(Pin(P), N, timing = 1)
 
-
-# Attempt overclock for higher responsiveness
+"""
+ Attempt overclock ESP32 for higher responsiveness
+ ESP32S3 is overclockable at 240MHz.
+ ESP32 Base is overclockable at 200MHz.
+"""
 try:
     freq(200000000)
     debug("Core overclock applied succesfully!") 
@@ -53,12 +57,11 @@ except Exception as e:
     
 debug(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
-def get_animation_paths(folder_path = ANIMATION_FOLDER) -> tuple[str]:
+def get_animation_paths(folder_path = ANIMATION_FOLDER) -> Tuple[str]:
     """
     Get a tuple of the animation folder paths.
     """
-    folders = tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
-    return folders
+    return tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
 
 animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)
@@ -70,23 +73,22 @@ values = {
     CHANNEL: 3
 }
 
-def read_frames(folder_path:str) -> list[list[int]]:
+def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
     """
     Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
     """
-    global animations
-    global animation_paths
-    frames = []
-    for filename in listdir(folder_path):
-        if filename.endswith('.csv'):
-            with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-                """
-                Skip the first line so we can directly convert each line to tuple[int, int, int, int].
-                """
-                next(csvfile)
+    def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
+        frame: Tuple[Tuple[int, int, int, int]] = None
+        with open(filename, 'r', encoding = "utf-8") as csvfile:
+            """
+            Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+            """
+            next(csvfile)
+            frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+            
+        return frame
                 
-                frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-                frames.append(frame)
+    frames = tuple(assemble("/".join([folder_path, filename])) for filename in listdir(folder_path) if filename.endswith('.csv'))
     
     return frames
 
@@ -98,25 +100,17 @@ def clear() -> None:
     display.fill((0,0,0))
     display.write()
 
-def animate(frames) -> None:
+def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
     """
     Play frames with a set time interval in ms.
     """
     global display
-    global values
-    global SPEED
-    
+    b = values["Brightness"]
     for frame in frames:
-        b = values[BRIGHTNESS]
-        c = values[CHANNEL]
         for p in frame:
             display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
         display.write()
-        if b != values[BRIGHTNESS] or c!= values[CHANNEL]:
-            values[SPEED] = 0
-            return False
-        sleep_ms(values[SPEED]*10)
-    return True
+        sleep_ms(int(values["Speed"]*20))
         
 
 
@@ -124,14 +118,13 @@ def main() -> None:
     global animations
     global values
     global RUNNING
-    global SPEED
-
+    
+    # Pre-load animations in a Tuple. 
     animations = tuple(read_frames(folder) for folder in animation_paths)
+    
     while RUNNING:
-        if animate(animations[values[CHANNEL]]):
-            sleep_ms(values[SPEED]*randint(200, 5000))
-
-        
+        animate(animations[values['Channel']])
+        sleep_ms(int(values["Speed"]*5000))
   
 
 if __name__ == '__main__':
@@ -139,6 +132,5 @@ if __name__ == '__main__':
         clear()
         main()
     except Exception as e:    
-        debug(e)
+        print(e)
         clear()
-     

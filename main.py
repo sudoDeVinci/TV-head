@@ -1,3 +1,7 @@
 from tvlib.comparator import *
+from tvlib.transformations import *
+from cv2 import imshow, waitKey
+from colorama import init, Fore, Back, Style
 
-convert_all()
+Config.load()
+

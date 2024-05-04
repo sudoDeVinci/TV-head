@@ -14,11 +14,25 @@ from typing import List, Tuple, Dict, Callable, Any, Union, Optional
 from random import randint
 import gc
 
+
+# If debug is True, our debug lines throughtout the code will print. Otherwise, do nothing
+DEBUG:bool = False
+def out01(x:str) -> None:
+    pass
+def out02(x:str) -> None:
+    pass
+debug = out01 if DEBUG else out02
+
+# Variables to define constant labels
+BRIGHTNESS = "Brightness"
+CHANNEL = "Channel"
+SPEED = "Speed"
+
 # Variable to keep running script or not.
-RUNNING = True
+RUNNING: bool = True
 
 # Folder for animation csvs
-ANIMATION_FOLDER = "/csvs/"
+ANIMATION_FOLDER: str = "/csvs/"
 
 # Pin number to address
 P = 21
@@ -47,17 +61,16 @@ def get_animation_paths(folder_path:str = ANIMATION_FOLDER) -> Tuple[str]:
     """
     Get a tuple of the animation folder paths.
     """
-    folders = tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
-    return folders
+    return tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
 
 animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)-1
 animations = list()
 
 values: Dict[str, float|int] = {
-    "Brightness": 0.25,
-    "Speed": 1.5,
-    "Channel": 1
+    BRIGHTNESS: 0.25,
+    SPEED: 1,
+    CHANNEL: 3
 }
 
 def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
@@ -128,8 +141,6 @@ def main() -> None:
     global values
     global RUNNING
     
-    clear()
-    
     # Pre-load animations in a Tuple. 
     animations = tuple(read_frames(folder) for folder in animation_paths)
     
@@ -142,6 +153,7 @@ def main() -> None:
 
 if __name__ == '__main__':
     try:
+        clear()
         main()
     except Exception as e:    
         print(e)

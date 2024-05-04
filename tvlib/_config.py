@@ -8,12 +8,12 @@ from os import listdir
 # For typing, these are inexact because out memory layout differences between Mat and UMat
 type NDArray = numpy.typing.NDArray[any]
 type MatLike = numpy.typing.NDArray[numpy.uint8]
+type UMat = numpy.typing.NDArray[numpy.uint8]
 
 IMAGE_DIR:str = mkdir("animations")
 CSV_DIR:str = mkdir("csvs")
 DEBUG:bool = True
 CONFIG_FILE:str = "conf.toml"
-# Header for frame csvs
 HEADER: Tuple[str] = ('index', 'blue', 'green', 'red')
 
 # If debug is True, print. Otherwise, do nothing.
