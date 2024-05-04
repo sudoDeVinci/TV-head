@@ -5,7 +5,6 @@ Idea from:
 https://rose.systems/tv_head/
 """
 
-from ast import Tuple
 from machine import Pin, UART,freq
 from neopixel import NeoPixel
 from time import sleep_ms
@@ -24,7 +23,7 @@ ANIMATION_FOLDER = "/csvs/"
 # Pin number to address
 P = 21
 # Number of leds to address
-N = 96
+N = 100
 
 # Define display to draw to
 # Display is our array of leds.
@@ -44,7 +43,7 @@ except Exception as e:
 print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 
-def get_animation_paths(folder_path:str = ANIMATION_FOLDER) -> tuple[str]:
+def get_animation_paths(folder_path:str = ANIMATION_FOLDER) -> Tuple[str]:
     """
     Get a tuple of the animation folder paths.
     """
@@ -55,10 +54,10 @@ animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)-1
 animations = list()
 
-values: Dict[str, float] = {
-    "Brightness": 0.4,
-    "Speed": 1.0,
-    "Channel": 0.0
+values: Dict[str, float|int] = {
+    "Brightness": 0.25,
+    "Speed": 1.5,
+    "Channel": 1
 }
 
 def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
@@ -66,15 +65,17 @@ def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
     Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
     """
     def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
-        with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
+        frame: Tuple[Tuple[int, int, int, int]] = None
+        with open(filename, 'r', encoding = "utf-8") as csvfile:
             """
             Skip the first line so we can directly convert each line to tuple[int, int, int, int].
             """
             next(csvfile)
             frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-            return frame
+            
+        return frame
                 
-    frames = tuple(assemble(filename) for filename in listdir(folder_path) if filename.endswith('.csv'))
+    frames = tuple(assemble("/".join([folder_path, filename])) for filename in listdir(folder_path) if filename.endswith('.csv'))
     
     return frames
 
@@ -126,9 +127,14 @@ def main() -> None:
     global animations
     global values
     global RUNNING
-
+    
+    clear()
+    
+    # Pre-load animations in a Tuple. 
     animations = tuple(read_frames(folder) for folder in animation_paths)
+    
     print(free())
+    
     while RUNNING:
         animate(animations[values['Channel']])
         sleep_ms(values["Speed"]*5000)

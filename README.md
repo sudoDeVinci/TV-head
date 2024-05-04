@@ -44,7 +44,7 @@ The wiring of the LEDs is the same as the original made by Vivian. Don't fix wha
 
 ## How it Works 
 
-Images (either pixel art or other) are converted via the [open-cv](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
+Images (either pixel art or other) are converted via the [Open-CV](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
 
@@ -109,17 +109,17 @@ To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/lates
 
 ```Python
 
-from machine import Pin
-from neopixel import NeoPixel
+  from machine import Pin
+  from neopixel import NeoPixel
 
-# Pin number to address
-P = 21
-# Number of leds to address
-N = 96
+  # Pin number to address
+  P = 21
+  # Number of leds to address
+  N = 96
 
-# Define display to draw to
-# Display is our array of leds.
-display = NeoPixel(Pin(P), N, timing = 1)
+  # Define display to draw to
+  # Display is our array of leds.
+  display = NeoPixel(Pin(P), N, timing = 1)
 
 ```
 
@@ -129,8 +129,8 @@ Individual LEDs are addressed by their index in the strip, and can be set to a s
 
 ```Python
 
-# To set LED i to (0, 0, 0):
-display[i] = (0, 0, 0)  
+  # To set LED i to (0, 0, 0):
+  display[i] = (0, 0, 0)  
 
 ```
 #### Displaying an Image
@@ -143,21 +143,23 @@ Firstly we get all the frames for the current animation playing:
 ```Python
 
   def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
-      """
-      Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
-      """
-      def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
-          with open("/".join([folder_path, filename]), 'r', encoding = "utf-8") as csvfile:
-              """
-              Skip the first line so we can directly convert each line to tuple[int, int, int, int].
-              """
-              next(csvfile)
-              frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-              return frame
-                  
-      frames = tuple(assemble(filename) for filename in listdir(folder_path) if filename.endswith('.csv'))
-      
-      return frames
+    """
+    Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
+    """
+    def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
+      frame: Tuple[Tuple[int, int, int, int]] = None
+      with open(filename, 'r', encoding = "utf-8") as csvfile:
+        """
+        Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+        """
+        next(csvfile)
+        frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+          
+      return frame
+                
+    frames = tuple(assemble("/".join([folder_path, filename])) for filename in listdir(folder_path) if filename.endswith('.csv'))
+
+    return frames
   
 ```
 
@@ -166,8 +168,8 @@ We read the current animation index according to the value in the global diction
 ```Python
 
   while RUNNING:
-          animate(animations[values['Channel']])
-          sleep_ms(values["Speed"]*5000)
+    animate(animations[values['Channel']])
+    sleep_ms(values["Speed"]*5000)
 
 ```
 
@@ -191,3 +193,34 @@ We skip the first item in the list because it's the header for the csv file. For
 ```
 
 We go out of our way here to pretty much always use Tuples rather than Lists for memory savings. We wont be changing the frames and their details once loaded, unless we change the channel, in which cause we scrap them all at once anyway. Image paths as well are basically constant once loaded. The immutability is a plus-side, and it allows for faster looping and less computational overhead for certain operations which become much more pronounced on a tiny MCU like a Pi Pico.
+
+In the main function, it's a very simple flow. CLear the screen, load the animations, and play the one designated in the global dictionary.
+We pre-load all the animations at once since they dont actually contain that much information. This is much faster than having to read and assemble the animation from flash memory every time we switch channels.
+
+```Python
+
+  def main() -> None:
+    global animations
+    global values
+    global RUNNING
+    
+    clear()
+    
+    # Pre-load animations in a Tuple. 
+    animations = tuple(read_frames(folder) for folder in animation_paths)
+    
+    print(free())
+    
+    while RUNNING:
+        animate(animations[values['Channel']])
+        sleep_ms(values["Speed"]*5000)
+
+
+  if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:    
+        print(e)
+        clear()
+      
+```

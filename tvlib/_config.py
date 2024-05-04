@@ -1,8 +1,8 @@
 from cv2 import imread, IMREAD_COLOR,resize, Mat, compare, CMP_NE, findNonZero
 from numpy import array_equal, ndarray, array, flip, uint8, nonzero, column_stack
 import numpy.typing
-from _fileio import *
-from _boards import BoardCatalog
+from tvlib._fileio import *
+from tvlib._boards import BoardCatalog
 from os import listdir
 
 # For typing, these are inexact because out memory layout differences between Mat and UMat

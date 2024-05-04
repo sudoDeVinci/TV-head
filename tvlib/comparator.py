@@ -1,5 +1,5 @@
 from numpy import where
-from _config import *
+from tvlib._config import *
 from glob import glob
 
 def save_frames(frames:List[List[Tuple[int, int, int, int]]], label:str) -> None:
