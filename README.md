@@ -194,7 +194,7 @@ We skip the first item in the list because it's the header for the csv file. For
 
 We go out of our way here to pretty much always use Tuples rather than Lists for memory savings. We wont be changing the frames and their details once loaded, unless we change the channel, in which cause we scrap them all at once anyway. Image paths as well are basically constant once loaded. The immutability is a plus-side, and it allows for faster looping and less computational overhead for certain operations which become much more pronounced on a tiny MCU like a Pi Pico.
 
-In the main function, it's a very simple flow. CLear the screen, load the animations, and play the one designated in the global dictionary.
+In the main function, it's a very simple flow. Clear the screen, load the animations, and play the one designated in the global dictionary.
 We pre-load all the animations at once since they dont actually contain that much information. This is much faster than having to read and assemble the animation from flash memory every time we switch channels.
 
 ```Python

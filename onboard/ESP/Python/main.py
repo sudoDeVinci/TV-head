@@ -120,7 +120,7 @@ def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
         for p in frame:
             display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
         display.write()
-        sleep_ms(values["Speed"]*20)
+        sleep_ms(int(values["Speed"]*20))
 
 
 def main() -> None:
@@ -137,7 +137,7 @@ def main() -> None:
     
     while RUNNING:
         animate(animations[values['Channel']])
-        sleep_ms(values["Speed"]*5000)
+        sleep_ms(int(values["Speed"]*5000))
   
 
 if __name__ == '__main__':
