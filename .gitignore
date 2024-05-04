@@ -1,2 +1,6 @@
 *.pyc
 *.csv
+Scripts/*
+Lib/*
+Include/*
+pyvenv.cfg
