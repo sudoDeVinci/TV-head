@@ -68,9 +68,9 @@ animation_amount = len(animation_paths)-1
 animations = list()
 
 values: Dict[str, float|int] = {
-    BRIGHTNESS: 0.25,
+    BRIGHTNESS: 0.15,
     SPEED: 1,
-    CHANNEL: 3
+    CHANNEL: 0
 }
 
 def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
@@ -148,7 +148,7 @@ def main() -> None:
     
     while RUNNING:
         animate(animations[values['Channel']])
-        sleep_ms(int(values["Speed"]*5000))
+        sleep_ms(randint(int(values["Speed"]*500), int(values["Speed"]*10_000)))
   
 
 if __name__ == '__main__':

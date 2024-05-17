@@ -12,10 +12,9 @@
 from machine import Pin, freq
 from rotary import Rotary
 
-IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
-
 
 class RotaryIRQ(Rotary):
+    IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
     def __init__(
         self,
         pin_num_clk,
