@@ -88,7 +88,7 @@ class Config:
         """
         Get the resolution of the display.
         """
-        return Config._width, Config._height
+        return (Config._width, Config._height)
     
     @staticmethod
     def get_board_type() -> BoardCatalog:

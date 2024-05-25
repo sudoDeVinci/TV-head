@@ -67,12 +67,12 @@ def convert_images(img_paths: List[str], target_dimensions:Tuple[int,int]) -> No
     save_frames(frames, label)
 
 
-def convert_dir(folder: str) -> None:
+def convert_dir(folder: str, target_dimensions:Tuple[int,int]) -> None:
     animas = [path.join(IMAGE_DIR, folder, _) for _ in listdir(path.join(IMAGE_DIR, folder)) if isimage(_)]
-    convert_images(animas, (10, 10))
+    convert_images(animas, target_dimensions)
     
-def convert_all() -> None:
+def convert_all(target_dimensions:Tuple[int,int]) -> None:
     for folder in listdir(IMAGE_DIR):
         if path.isdir(path.join(IMAGE_DIR, folder)):
             print(folder)
-            convert_dir(folder)
+            convert_dir(folder, target_dimensions)

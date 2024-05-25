@@ -1,99 +1,25 @@
+from rotaryirq import *
+from config import *
 
-"""
-Boilerplate from :
-https://randomnerdtutorials.com/micropython-ws2812b-addressable-rgb-leds-neopixel-esp32-esp8266/
-Idea from:
-https://rose.systems/tv_head/
-"""
-
-
-from machine import Pin, UART,freq
-from neopixel import NeoPixel
+from machine import Pin, freq
 from time import sleep_ms
-from os import listdir, ilistdir, statvfs
-from math import pow
-from typing import List, Tuple, Dict, Callable, Any, Union, Optional
-from random import randint
-import gc
+from neopixel import NeoPixel
+from micropython import alloc_emergency_exception_buf
+import MPU6050
+import _thread
+from gc import collect
 
-# If debug is True, our debug lines throughtout the code will print. Otherwise, do nothing
-DEBUG:bool = False
-def out01(x:str) -> None:
-    pass
-def out02(x:str) -> None:
-    pass
-debug = out01 if DEBUG else out02
-
-# Variables to define constant labels
-BRIGHTNESS = "Brightness"
-CHANNEL = "Channel"
-SPEED = "Speed"
-
-# Variable to keep running script or not.
-RUNNING:bool = True
-
-# Folder for animation csvs
-ANIMATION_FOLDER:str = "/csvs/"
-
-# Pin number to address
-P = 16
-# Number of leds to address
-N = 160
+alloc_emergency_exception_buf(100)
 
 # Define display to draw to.
 # Display is our array of leds.
 display = NeoPixel(Pin(P), N, timing = 1)
-
-"""
- Attempt overclock ESP32 for higher responsiveness
- ESP32S3 is overclockable at 240MHz.
- ESP32 Base is overclockable at 200MHz.
-"""
-try:
-    freq(200000000)
-    debug("Core overclock applied succesfully!") 
-except Exception as e:
-    debug("Core overclock not applied.")
-    
-debug(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
-
-def get_animation_paths(folder_path = ANIMATION_FOLDER) -> Tuple[str]:
-    """
-    Get a tuple of the animation folder paths.
-    """
-    return tuple(ANIMATION_FOLDER+file[0] for file in ilistdir(folder_path) if file[1] == 0x4000)
-
-
-animation_paths = get_animation_paths()
-animation_amount = len(animation_paths)
-animations = list()
-
-values = {
-    BRIGHTNESS: 0.15,
-    SPEED: 1,
-    CHANNEL: 4
-}
-
-
-def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
-    """
-    Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
-    """
-    def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
-        frame: Tuple[Tuple[int, int, int, int]] = None
-        with open(filename, 'r', encoding = "utf-8") as csvfile:
-            """
-            Skip the first line so we can directly convert each line to tuple[int, int, int, int].
-            """
-            next(csvfile)
-            frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-            
-        return frame
-                
-    frames = tuple(assemble("/".join([folder_path, filename])) for filename in listdir(folder_path) if filename.endswith('.csv'))
-    
-    return frames
-
+# Set up the I2C interface
+i2c = machine.I2C(1, sda=machine.Pin(14), scl=machine.Pin(15))
+# Set up the MPU6050 class 
+mpu = MPU6050.MPU6050(i2c)
+# wake up the MPU6050 from sleep
+mpu.wake()
 
 def clear() -> None:
     """
@@ -109,31 +35,36 @@ def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
     Play frames with a set time interval in ms.
     """
     global display
-    b = values["Brightness"]
+    global RENDER_VALUES
+    global BRIGHTNESS
+    global CHANNEL
+    global SPEED
+    
+    b = RENDER_VALUES[BRIGHTNESS]
+    ch = RENDER_VALUES[CHANNEL]
     for frame in frames:
         for p in frame:
+            if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
+                clear()
+                return
             display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
         display.write()
-        sleep_ms(int(values["Speed"]*20))
-        
+        sleep_ms(int(RENDER_VALUES[SPEED]*20))
+    
+    for i in range(100):
+        if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
+            clear()
+            return
+        sleep_ms(int(RENDER_VALUES[SPEED]*50))
 
 def main() -> None:
-    global animations
-    global values
+    global RENDER_VALUES
     global RUNNING
+    global animations
+    global CHANNEL
     
-    # Pre-load animations in a Tuple. 
-    animations = tuple(read_frames(folder) for folder in animation_paths)
-    
-    while RUNNING:
-        animate(animations[values['Channel']])
-        sleep_ms(int(values["Speed"]*5000))
-  
+    while True:
+        animate(animations[RENDER_VALUES[CHANNEL]])
+        collect()
 
-if __name__ == '__main__':
-    try:
-        clear()
-        main()
-    except Exception as e:    
-        print(e)
-        clear()
+main()

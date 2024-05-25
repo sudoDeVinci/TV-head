@@ -59,6 +59,8 @@ BinaryIO = IO[bytes]
 
 AnyStr = TypeVar("AnyStr", str, bytes)
 
+class Self: pass
+
 
 def cast(typ, val):
     return val

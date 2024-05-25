@@ -1,6 +1,6 @@
 from tvlib._config import *
 from enum import Enum
-from cv2 import ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE, flip, rotate
+from cv2 import ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE, flip, rotate, imread, imshow, waitKey
 from functools import partial
 
 type Flip = None
@@ -16,16 +16,16 @@ def nothing(): pass
 
 
 class Rotation(Enum):
-    ROTATE_90 = partial(mapped_flip, flp = ROTATE_90_COUNTERCLOCKWISE)
-    ROTATE_180 = partial(mapped_flip, flp = ROTATE_180)
-    ROTATE_270 = partial(mapped_flip, flp = ROTATE_90_CLOCKWISE)
+    ROTATE_90 = partial(mapped_rotate, rot = ROTATE_90_COUNTERCLOCKWISE)
+    ROTATE_180 = partial(mapped_rotate, rot = ROTATE_180)
+    ROTATE_270 = partial(mapped_rotate, rot = ROTATE_90_CLOCKWISE)
     NONE = nothing
 
 
 class Flip(Enum):
-    VERTICAL_FLIP = partial(mapped_rotate, rot = 1)
-    HORIZONTAL_FLIP = partial(mapped_rotate, rot = 0)
-    VERTICAL_AND_HORIZONTAL_FLIP = partial(mapped_rotate, rot = -1)
+    VERTICAL_FLIP = partial(mapped_flip, flp = 1)
+    HORIZONTAL_FLIP = partial(mapped_flip, flp = 0)
+    VERTICAL_AND_HORIZONTAL_FLIP = partial(mapped_flip, flp = -1)
     NONE = None
 
 
@@ -41,4 +41,3 @@ def _realign(img: MatLike, tw: int, th: int) -> NDArray:
     # Reverse the order of pixels in every second row
     img[1::2, :] = flip(img[1::2, :], axis=1)
     return img.reshape(-1, img.shape[-1])
-

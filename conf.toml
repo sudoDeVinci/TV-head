@@ -1,6 +1,6 @@
 [resolution]
-width=10
-height=10
+width=20
+height=8
 
 [target]
 board="esp32s3"

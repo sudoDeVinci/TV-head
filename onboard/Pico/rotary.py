@@ -7,7 +7,7 @@
 # Documentation:
 #   https://github.com/MikeTeachman/micropython-rotary
 
-import micropython
+from micropython import const
 from typing import Self, List, Callable
 
 _DIR_CW = const(0x10)  # Clockwise step
@@ -159,7 +159,7 @@ class Rotary(object):
             raise ValueError('{} is not an installed listener'.format(l))
         self._listener.remove(l)
 
-    def _wrap(value: int, incr:int, lower_bound:int, upper_bound:int) -> int:
+    def _wrap(self, value: int, incr:int, lower_bound:int, upper_bound:int) -> int:
         range = upper_bound - lower_bound + 1
         value = value + incr
 
@@ -168,14 +168,14 @@ class Rotary(object):
 
         return lower_bound + (value - lower_bound) % range
 
-    def _bound(value, incr, lower_bound, upper_bound) -> int:
+    def _bound(self, value, incr, lower_bound, upper_bound) -> int:
         return min(upper_bound, max(lower_bound, value + incr))
 
     def _trigger(self) -> None:
         for listener in self._listener:
             listener()
 
-    def _process_rotary_pins(self) -> None:
+    def _process_rotary_pins(self, pin) -> None:
         old_value = self._value
         clk_dt_pins = (self._hal_get_clk_value() <<
                        1) | self._hal_get_dt_value()
