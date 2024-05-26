@@ -2,7 +2,7 @@ import toml
 import csv
 from json import dump
 from os import path, walk, mkdir, makedirs, rename
-from typing import List, Tuple, Sequence, Mapping, Dict, Any
+from typing import List, Tuple, Sequence, Mapping, Dict, Any, Self
 
 
 def mkdir(folder:str) -> str:
