@@ -1,4 +1,4 @@
-import pygame,sys
+import pygame
 from pygame.locals import *
 from tvlib._config import *
 
@@ -11,7 +11,7 @@ def _filter_pixels(arr: NDArray, value: int) -> NDArray:
     return array([img for img in arr if not (img == value).all()])
 
 
-def sprite_sheet(size: Tuple[int, int], file: str, background_value:int = 0) -> NDArray:
+def sprite_to_array(size: Tuple[int, int], file: str, background_value:int = 0) -> NDArray:
     """
     Given a sprite sheet where the hieght and width of the sprites are known,
     extract each sprite to a seprate image and save them sequentially in an array.
@@ -29,8 +29,8 @@ def sprite_sheet(size: Tuple[int, int], file: str, background_value:int = 0) -> 
             img = sheet.subsurface(rect)
             imgdata = pygame.surfarray.array3d(img)
             imgdata = imgdata.swapaxes(0, 1)
+            imgdata = cvtColor(imgdata, COLOR_RGB2BGR)
             sprites.append(imgdata)
 
+    # return array([img for img in sprites])
     return _filter_pixels(array(sprites, dtype = uint8), value=background_value)
-
-

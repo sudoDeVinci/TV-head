@@ -6,27 +6,32 @@ from functools import partial
 type Flip = None
 type Rotation = None
 
-def mapped_flip(image: MatLike | UMat, flp: Flip):
+def mapped_flip(image: MatLike | UMat, flp: Flip) -> MatLike | UMat:
     return flip(image, flp)
 
-def mapped_rotate(image: MatLike | UMat, rot: Rotation):
+def mapped_rotate(image: MatLike | UMat, rot: Rotation) -> MatLike | UMat:
     return rotate(image, rot)
 
-def nothing(): pass
-
+def nothing(image: MatLike | UMat, rot: Rotation = None, flip: Flip = None) -> MatLike | UMat:
+    return image
 
 class Rotation(Enum):
     ROTATE_90 = partial(mapped_rotate, rot = ROTATE_90_COUNTERCLOCKWISE)
     ROTATE_180 = partial(mapped_rotate, rot = ROTATE_180)
     ROTATE_270 = partial(mapped_rotate, rot = ROTATE_90_CLOCKWISE)
-    NONE = nothing
+    NONE = partial(nothing, rot = None, flip = None)
 
+    def __call__(self, *args):
+        return self.value(*args)
 
 class Flip(Enum):
     VERTICAL_FLIP = partial(mapped_flip, flp = 1)
     HORIZONTAL_FLIP = partial(mapped_flip, flp = 0)
     VERTICAL_AND_HORIZONTAL_FLIP = partial(mapped_flip, flp = -1)
-    NONE = None
+    NONE = partial(nothing, rot = None, flip = None)
+
+    def __call__(self, *args):
+        return self.value(*args)
 
 
 def _realign(img: MatLike, tw: int, th: int) -> NDArray:
@@ -41,3 +46,8 @@ def _realign(img: MatLike, tw: int, th: int) -> NDArray:
     # Reverse the order of pixels in every second row
     img[1::2, :] = flip(img[1::2, :], axis=1)
     return img.reshape(-1, img.shape[-1])
+
+
+
+
+
