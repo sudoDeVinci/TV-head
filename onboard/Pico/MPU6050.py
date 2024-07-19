@@ -1,4 +1,4 @@
-import machine
+from machine import I2C
 from time import sleep_ms
 from typing import *
 from math import sqrt, mean
@@ -6,7 +6,7 @@ from math import sqrt, mean
 class MPU6050:
     """Class for reading gyro rates and acceleration data from an MPU-6050 module via I2C."""
     
-    def __init__(self, i2c:machine.I2C, address:int = 0x68):
+    def __init__(self, i2c:I2C, address:int = 0x68):
         """
         Creates a new MPU6050 class for reading gyro rates and acceleration data.
         :param i2c: A setup I2C module of the machine module.
@@ -15,7 +15,7 @@ class MPU6050:
         self.address = address
         self.i2c = i2c
         
-    def _median(self, lst) -> float:
+    def _median(self, lst: List[float]) -> float:
         n = len(lst)
         s = sorted(lst)
         mid = n // 2
@@ -24,14 +24,14 @@ class MPU6050:
         else:
             return s[mid]
 
-    def _IQR(self, lst) -> tuple[float, float, float]:
+    def _IQR(self, lst: List[float]) -> tuple[float, float, float]:
         n = len(lst)
         s = sorted(lst)
         q1 = self._median(s[:n//2])
         q3 = self._median(s[(n+1)//2:])
         return q1, q3, q3 - q1
     
-    def _filter(self, lst) -> tuple[float]:
+    def _filter(self, lst: List[float]) -> tuple[float]:
         # Compute Q1, Q3, and IQR
         q1, q3, iqr = self._IQR(lst)
         lower_bound = q1 - 1.5 * iqr
@@ -193,7 +193,7 @@ class MPU6050:
         else:
             raise Exception("Range index '" + index + "' invalid. Must be 0-3.")
         
-    def _ss(self, data, c=None):
+    def _ss(self, data: Iterable, c=None):
         if c is None:
             c = mean(data)
         total = total2 = 0
