@@ -1,6 +1,7 @@
 import machine
 from time import sleep_ms
 from typing import *
+from math import sqrt, mean
 
 class MPU6050:
     """Class for reading gyro rates and acceleration data from an MPU-6050 module via I2C."""
@@ -205,9 +206,9 @@ class MPU6050:
     def variance(self, data, xbar=None):
         if iter(data) is data:
             data = list(data)
-        return _ss(data, xbar)/(len(data) - 1)
+        return self._ss(data, xbar)/(len(data) - 1)
     
-    def stdev(data, xbar=None):
-        return math.sqrt(variance(data, xbar))
+    def stdev(self, data, xbar=None):
+        return sqrt(self.variance(data, xbar))
 
 

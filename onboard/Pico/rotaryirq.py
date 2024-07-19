@@ -1,4 +1,4 @@
-from machine import Pin, freq
+from machine import Pin
 from rotary import Rotary
 from config import RENDER_VALUES, CHANNEL, BRIGHTNESS, animation_amount
 

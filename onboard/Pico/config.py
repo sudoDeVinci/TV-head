@@ -14,9 +14,9 @@ debug = out02 if DEBUG else out01
 RUNNING: bool = True
 
 # Variables to define constant labels
-BRIGHTNESS: str = "Brightness"
-CHANNEL: str = "Channel"
-SPEED: str = "Speed"
+BRIGHTNESS: str = const("Brightness")
+CHANNEL: str = const("Channel")
+SPEED: str = const("Speed")
 
 # Folder for animation csvs
 ANIMATION_FOLDER:str = "/csvs/"
@@ -34,7 +34,7 @@ RENDER_VALUES: Dict[str, int | float] = {
 }
 
 
-def get_animation_paths(folder_path = ANIMATION_FOLDER) -> Tuple[str]:
+def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> Tuple[str]:
     global ANIMATION_FOLDER
     """
     Get a tuple of the animation folder paths.
@@ -61,7 +61,8 @@ def read_frames(folder_path:str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
     return frames
 
 
+
+# Pre-load animations in a Tuple. 
 animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)
-# Pre-load animations in a Tuple. 
 animations = tuple(read_frames(folder) for folder in animation_paths)
