@@ -1,4 +1,4 @@
-- Singl-Image
+- Single-Image
 - Multi-Image Folder
 - SpriteSheet
         |

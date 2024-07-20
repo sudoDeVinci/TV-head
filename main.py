@@ -18,14 +18,6 @@ ui.config_loaded()
 
 
 
-
-
-
-
-
-
-
-
 filename = '02-smile'
 images = sprite_to_array(size = resolution, file = f"animations/{filename}.png")
 print(len(images))

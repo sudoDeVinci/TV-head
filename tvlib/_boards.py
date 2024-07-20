@@ -1,36 +1,38 @@
 import functools
 from enum import Enum
-from inspect import isclass
+from typing import Optional
 
-class BoardType():
+
+class BoardType:
     UNKNOWN = "unknown"
+
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def _match(cls, board_name):
-
-        if len(cls.__members__.items()) == 0:
-            return cls
+    def _match(cls, board_name: str) -> Optional['BoardType']:
+        if not hasattr(cls, '__members__'):
+            return None
 
         for _, bt in cls.__members__.items():
-            if isclass(bt.value):
-                if issubclass(bt.value, BoardType):
-                    res = bt.value._match(board_name)
-                    if res is not None:
-                        return res
+            if isinstance(bt.value, type) and issubclass(bt.value, BoardType):
+                res = bt.value._match(board_name)
+                if res is not None:
+                    return res
             elif board_name == bt.value:
                 return bt
-    
+        return None
+
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def match(cls, board_name):
+    def match(cls, board_name: str) -> 'BoardType':
         board_name = board_name.lower()
         result = cls._match(board_name)
         return cls.UNKNOWN if result is None else result
-    
+
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def __contains__(cls, board_name) -> bool:
+    def __contains__(cls, board_name: str) -> bool:
         return BoardType.match(board_name) != cls.UNKNOWN
+
 
 class ESP32Boards(BoardType, Enum):
     """
@@ -39,6 +41,7 @@ class ESP32Boards(BoardType, Enum):
     ESP32 = "esp32"
     ESP32S2 = "esp32s2"
     ESP32S3 = "esp32s3"
+
 
 class RaspberryPiBoards(BoardType, Enum):
     """
@@ -55,8 +58,8 @@ class BoardCatalog(BoardType, Enum):
     """
     ESP32 = ESP32Boards
     RASPBERRY_PI = RaspberryPiBoards
-    
+
 
 if __name__ == "__main__":
-    print(f"Matching via the match() method: {BoardCatalog.match("esp32") == ESP32Boards.ESP32}")
+    print(f"Matching via the match method: {BoardCatalog.match('esp32') == ESP32Boards.ESP32}")
     print(f"Matching via .value attribute: {BoardCatalog.ESP32.value.ESP32S3 == ESP32Boards.ESP32S3}")

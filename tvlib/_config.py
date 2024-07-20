@@ -6,9 +6,9 @@ from tvlib._boards import BoardCatalog
 from os import listdir
 
 # For typing, these are inexact because out memory layout differences between Mat and UMat
-type NDArray = numpy.typing.NDArray[any]
-type MatLike = numpy.typing.NDArray[numpy.uint8]
-type UMat = numpy.typing.NDArray[numpy.uint8]
+NDArray = numpy.typing.NDArray[any]
+MatLike = numpy.typing.NDArray[numpy.uint8]
+UMat = numpy.typing.NDArray[numpy.uint8]
 
 IMAGE_DIR:str = mkdir("animations")
 CSV_DIR:str = mkdir("csvs")
@@ -96,6 +96,7 @@ class Config:
         Get the board type.
         """
         return Config._board_type
+
 
 if __name__ == "__main__":
     Config.load()

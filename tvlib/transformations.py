@@ -1,10 +1,10 @@
 from tvlib._config import *
 from enum import Enum
 from cv2 import ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE, flip, rotate, imread, imshow, waitKey
-from functools import partial, lru_cache
+from functools import partial
 
-type Flip = None
-type Rotation = None
+Flip = None
+Rotation = None
 
 def mapped_flip(image: MatLike | UMat, flp: Flip) -> MatLike | UMat:
     return flip(image, flp)
