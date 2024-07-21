@@ -97,7 +97,7 @@ class RotationMode(SelectorEnum, Enum):
     ROTATE_270 = 3
     NONE = 4
     
-def rotationModeMenuPrintout() -> None:
+def RotationModeMenuPrintout() -> None:
     out = f"""
     {RotationMode.BACK.value}: Back
     {RotationMode.ROTATE_90.value}: Rotate 90° clockwise
@@ -108,7 +108,7 @@ def rotationModeMenuPrintout() -> None:
     print(out)
     
 
-def rotationModeMenu() -> RotationMode:
+def RotationModeMenu() -> RotationMode:
     choice = parseBoundedIntInput(len(RotationMode.members()) - 1, RotationMode.BACK)
     return RotationMode.match(choice)
 
@@ -123,7 +123,7 @@ class FlipMode(SelectorEnum, Enum):
     NONE = 4
     
 
-def flipModeMenuPrintout() -> None:
+def FlipModeMenuPrintout() -> None:
     out = f"""
     {FlipMode.BACK.value}: Back
     {FlipMode.VERTICAL_FLIP.value}: Vertical flip
@@ -134,7 +134,7 @@ def flipModeMenuPrintout() -> None:
     print(out)
 
 
-def flipModeMenu() -> FlipMode:
+def FlipModeMenu() -> FlipMode:
     choice = parseBoundedIntInput(len(FlipMode.members()) - 1, FlipMode.BACK)
     return FlipMode.match(choice)
 
