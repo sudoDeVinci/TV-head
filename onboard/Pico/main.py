@@ -46,6 +46,10 @@ def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
             return
         sleep_ms(int(RENDER_VALUES[SPEED]*50))
 
+def read_position():
+    global mpu
+    
+    x, y ,z = mpu.sampled_gyro(SAMPLES)
 
 
 def main() -> None:
@@ -56,7 +60,6 @@ def main() -> None:
     
     while True:
         animate(animations[RENDER_VALUES[CHANNEL]])
-        collect()
 
 
 

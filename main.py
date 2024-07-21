@@ -18,9 +18,9 @@ ui.config_loaded()
 
 
 
-filename = '02-smile'
+filename = '01-smile'
 images = sprite_to_array(size = resolution, file = f"animations/{filename}.png")
-print(len(images))
+print(f"Number of Frames: {len(images)}")
 frames = comparator(IMAGES = images, width = width, height = height, rotator = Rotation.ROTATE_90)
 save_frames(frames, filename)
 

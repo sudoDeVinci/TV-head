@@ -13,7 +13,7 @@ def _filter_pixels(arr: NDArray, value: int) -> NDArray:
 
 def sprite_to_array(size: Tuple[int, int], file: str, background_value:int = 0) -> NDArray:
     """
-    Given a sprite sheet where the hieght and width of the sprites are known,
+    Given a sprite sheet where the height and width of the sprites are known,
     extract each sprite to a seprate image and save them sequentially in an array.
     """
     width, height = size
