@@ -83,34 +83,3 @@ class RotaryIRQ(Rotary):
 
     def _hal_close(self) -> None:
         self._hal_disable_irq()
-
-ROTARYIRQ_CHANNEL = RotaryIRQ(  pin_num_clk = 18,
-                                pin_num_dt = 19,
-                                label = CHANNEL,
-                                min_val = 0,
-                                max_val = animation_amount - 1,
-                                reverse = False,
-                                range_mode = Rotary.RANGE_WRAP
-                            )
-
-ROTARYIRQ_BRIGHTNESS = RotaryIRQ(   pin_num_clk = 27,
-                                    pin_num_dt = 26,
-                                    label = BRIGHTNESS,
-                                    min_val = 0,
-                                    max_val = 20,
-                                    reverse = False,
-                                    range_mode = Rotary.RANGE_WRAP
-                                )
-
-def rot_irq() -> None:
-    global ROTARYIRQ_CHANNEL
-    global ROTARYIRQ_BRIGHTNESS
-    global RENDER_VALUES
-    global animation_amount
-        
-    RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()] = (ROTARYIRQ_BRIGHTNESS.value() / 200)
-    RENDER_VALUES[ROTARYIRQ_CHANNEL.label()] = ROTARYIRQ_CHANNEL.value()
-
-ROTARYIRQ_CHANNEL.add_listener(rot_irq)
-ROTARYIRQ_BRIGHTNESS.add_listener(rot_irq)
-ROTARYIRQ_BRIGHTNESS.set(value = RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()])

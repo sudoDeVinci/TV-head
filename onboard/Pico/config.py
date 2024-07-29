@@ -28,7 +28,7 @@ N: int = const(160)
 
 # Render variable values for playing animations.
 RENDER_VALUES: Dict[str, int | float] = {
-    BRIGHTNESS: 0,
+    BRIGHTNESS: 0.1,
     SPEED: 1,
     CHANNEL: 0
 }

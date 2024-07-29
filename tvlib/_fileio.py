@@ -1,9 +1,19 @@
 import toml
 import csv
-from json import dump
+from json import dump, JSONEncoder
 from os import path, walk, mkdir, makedirs, rename
 from typing import List, Tuple, Sequence, Mapping, Dict, Any, Self
+from numpy import integer, floating, ndarray
 
+class NpEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, integer):
+            return int(obj)
+        if isinstance(obj, floating):
+            return float(obj)
+        if isinstance(obj, ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 def mkdir(folder:str) -> str:
     """
@@ -49,13 +59,20 @@ def write_csv(savepath: str, headers: List[str], data:List[List[str]]) -> None:
         writer.writerow(headers)
         writer.writerows(data)
 
-def write_json(savepath: str, data) -> None:
+def _write_json(savepath: str, data: dict) -> None:
     """
     Attempt to write to json file.
     """
-    with open(savepath, 'w+', encoding = "utf-8") as jsonfile:
-        dump(data, jsonfile, indent = 4)
-        
+    with open(savepath, 'w', encoding = "utf-8") as jsonfile:
+        dump(data, jsonfile, cls=NpEncoder)
+
+def write_json(savepath: str, data: dict) -> None:
+    try:
+        _write_json(savepath, data)
+    except Exception as e:
+        print(f"Error writing to json file:-> {e}") 
+        return None
+    
 def isimage(file_path:str) -> bool:
     """
     Check if file is an image.

@@ -12,6 +12,7 @@ UMat = numpy.typing.NDArray[numpy.uint8]
 
 IMAGE_DIR:str = mkdir("animations")
 CSV_DIR:str = mkdir("csvs")
+JSON_DIR:str = mkdir("json")
 DEBUG:bool = True
 CONFIG_FILE:str = "conf.toml"
 HEADER: Tuple[str] = ('index', 'blue', 'green', 'red')

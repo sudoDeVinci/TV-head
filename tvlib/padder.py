@@ -28,6 +28,8 @@ def padder(base_path: str):
                     base_path = path.join(root, folder)
                     if path.isdir(base_path):
                         _file_traverse(base_path)
+    else:
+        print("Not a dir")
                         
 
 def _file_traverse(base_path: str):
@@ -53,7 +55,7 @@ def _padded_rename(filename: str, dirname: str, frame_path: str) -> None:
     found, digit = _find_digit_bound(filename)
     if found:
         new_filename_prefix = filename[:(digit+1)]
-        new_filename_suffix = filename[(digit+1):].zfill(4) + ".png"
+        new_filename_suffix = filename[(digit+1):].zfill(6) + ".png"
         debug(new_filename_prefix + new_filename_suffix)
         rename(frame_path, path.join(IMAGE_DIR, dirname, new_filename_prefix + new_filename_suffix))
 

@@ -1,9 +1,12 @@
 from numpy import where
 from tvlib.transformations import *
 from tvlib._config import *
-from glob import glob
+from tvlib._fileio import write_json
 
-def save_frames(frames:List[List[Tuple[int, int, int, int]]], label:str) -> None:
+
+
+
+def save_frames_csv(frames:List[List[Tuple[int, int, int, int]]], label:str) -> None:
     """
     Save the converted frames to a csv file.
     """
@@ -13,8 +16,21 @@ def save_frames(frames:List[List[Tuple[int, int, int, int]]], label:str) -> None
     savepaths:List[str] = [path.join(CSV_DIR, label, f'{str(count).zfill(4)}.csv') for count in range(len(frames))]
     for index, savepath in enumerate(savepaths):
         write_csv(savepath, HEADER, frames[index])
+        
+def save_frames_json(frames:List[List[Tuple[int, int, int, int]]], label:str) -> None:
+    if len(frames) == 0: return None
+    mkdir(path.join(JSON_DIR, label))
+    
+    savepath:str = path.join(JSON_DIR, label, f'{label}.json')
+    write_json(savepath, {'frames': frames})
+    
 
-def _realign(img: MatLike, tw: int, th: int, rotator: Rotation = Rotation.NONE, flipper: Flip = Flip.NONE) -> NDArray:
+def _realign(img: MatLike, 
+             tw: int, 
+             th: int, 
+             rotator: Rotation = Rotation.NONE, 
+             flipper: Flip = Flip.NONE
+            ) -> NDArray:
     """
     Reorder image rows to fit strip design, then flatten image into 2D array.
     """
@@ -22,7 +38,7 @@ def _realign(img: MatLike, tw: int, th: int, rotator: Rotation = Rotation.NONE, 
     target_dimensions = (tw, th)
     if target_dimensions!=(width, height):
         img = resize(img, target_dimensions)
-        height, width, _ = img.shape
+        width, height = target_dimensions
     
     img = rotator(img)
     img = flipper(img)
@@ -39,7 +55,11 @@ def _nonzero(img: Mat) -> Tuple[Tuple[int, int, int, int]]:
     frame = [(i, *img[i]) for i in nonzero_pixels[0]]
     return frame
 
-def convert_images(img_paths: List[str], target_dimensions:Tuple[int,int]) -> None:
+def convert_images(img_paths: List[str],
+                   target_dimensions:Tuple[int,int],
+                   rotator: Rotation = Rotation.NONE,
+                   flipper: Flip = Flip.NONE
+                  ) -> None:
     """
     Given a list of image paths, convert these into  
     """
@@ -49,11 +69,22 @@ def convert_images(img_paths: List[str], target_dimensions:Tuple[int,int]) -> No
     
     IMAGES = array([imread(img_path) for img_path in img_paths], dtype=uint8)
 
-    frames:List[List[Tuple[int, int, int, int]]] = comparator(IMAGES, label, width, height)
+    frames:List[List[Tuple[int, int, int, int]]] = comparator(IMAGES,
+                                                              label, 
+                                                              width, 
+                                                              height, 
+                                                              rotator=rotator, 
+                                                              flipper = flipper)
 
-    save_frames(frames, label)
+    write_json(img_path)
+    #save_frames(frames, label)
 
-def comparator(IMAGES: NDArray, width: int, height: int,  rotator: Rotation = Rotation.NONE, flipper: Flip = Flip.NONE) -> List[List[Tuple[int, int, int, int]]]:
+def comparator(IMAGES: NDArray, 
+               width: int, 
+               height: int,  
+               rotator: Rotation = Rotation.NONE, 
+               flipper: Flip = Flip.NONE
+               ) -> List[List[Tuple[int, int, int, int]]]:
     """
     Given a list of images, convert these into frames and return it.
     """
@@ -61,18 +92,12 @@ def comparator(IMAGES: NDArray, width: int, height: int,  rotator: Rotation = Ro
     frames:List[List[Tuple[int, int, int, int]]] = [ [(0,0,0,0)] for _ in range(len(IMAGES))]
 
     FRAMES = array([_realign(im, width, height, rotator=rotator, flipper = flipper) for im in IMAGES])
-
-    #old_frame = IMAGES[0]
-    #old_frame = _realign(old_img, width, height)
-    #frames[0] = _nonzero(old_frame)
-
-
     old_frame = FRAMES[0]
     frames[0] = _nonzero(old_frame)
     
+    
     for index, new_frame in enumerate(FRAMES[1:]):
         changes:List[Tuple[int, int, int, int]] = []
-        # new_frame = _realign(img, width, height, rotator=rotator, flipper = flipper)
         
         if not array_equal(new_frame, old_frame):
             for i in range(len(new_frame)):
@@ -88,12 +113,26 @@ def comparator(IMAGES: NDArray, width: int, height: int,  rotator: Rotation = Ro
     
     return frames
 
-def convert_dir(folder: str, target_dimensions:Tuple[int,int]) -> None:
+def convert_dir(folder: str, 
+                target_dimensions:Tuple[int,int], 
+                rotator: Rotation = Rotation.NONE, 
+                flipper: Flip = Flip.NONE) -> None:
+    
     animas = [path.join(IMAGE_DIR, folder, _) for _ in listdir(path.join(IMAGE_DIR, folder)) if isimage(_)]
-    convert_images(animas, target_dimensions)
+    convert_images(animas, 
+                   target_dimensions, 
+                   rotator=rotator, 
+                   flipper=flipper)
 
-def convert_all(target_dimensions:Tuple[int,int]) -> None:
+def convert_all(target_dimensions:Tuple[int,int],
+                rotator: Rotation = Rotation.NONE, 
+                flipper: Flip = Flip.NONE
+                ) -> None:
+    
     for folder in listdir(IMAGE_DIR):
         if path.isdir(path.join(IMAGE_DIR, folder)):
             print(folder)
-            convert_dir(folder, target_dimensions)
+            convert_dir(folder, 
+                        target_dimensions,
+                        rotator=rotator, 
+                        flipper=flipper)

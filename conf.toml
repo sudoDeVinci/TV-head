@@ -3,4 +3,4 @@ width=10
 height=10
 
 [target]
-board="esp32s3"
+board="raspberry pi pico"
