@@ -6,7 +6,7 @@ This is the software behind my Tv Head cosplay made for Närcon Summer 2023 usin
 
 While I had wanted to do this cosplay for a while, the technical details were modified from [Vivian Thomas'](https://rose.systems) implementation found [here](https://rose.systems/tv_head/).
 
-My implementation aims more to be an alternate version of their mk1 design:
+My implementation aimed more to be an alternate version of their mk1 design, but evolved into a creature of its own:
 
 Front view | Inside
 :-----------------------------------:|:------------------------------------:|
@@ -20,6 +20,7 @@ Front view | Inside
   - Including a version written in MicroPython.
 - Display pre-loaded images and animations, rather than text.
 - Adjusting settings via knobs on the front of the face rather than a wired keyboard.
+- Add movement-based animation feedback.
 
 <br>
 
@@ -34,7 +35,7 @@ Version 3.5 | <img src='media/IMG_0134.gif' alt="MarineGEO circle logo" style="h
 
 ### Hardware structure
 
-The wiring of the LEDs is the same as the original made by Vivian. Don't fix what's not broken. an example can be seen below:
+The wiring of the LEDs is the same as the original made by Vivian. Don't fix what's not broken. An example can be seen below:
 
 <br>
 
@@ -46,22 +47,43 @@ The wiring of the LEDs is the same as the original made by Vivian. Don't fix wha
 
 Images (either pixel art or other) are converted via the [Open-CV](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
-This implementation allows having folders of sequential csv files which can be made into animations, with each file as a single frame.
+This implementation allows a couple of ways of playing these frames on the device:
+1. Having folders of sequential csv files which can be made into animations, with each file as a single frame.
+2. Having a single json file which contains all frames and also metadata.
 
 **If images filenames are not zero-padded, they may not be iterated through in the right order. A quick fix for mass-renaming files to be zero-padded is the [padded_rename script](tvlib/padder.py)**
 
 
 ### Converting images
 
-We move through all sub-directories in the [animations folder](animations/), converting each into a csv with a corresponding path within the [csv folder](csvs/) to the form:
+We move through all sub-directories in the [animations folder](animations/), 
+converting each into a json file with the corresponding path within the [json folder](json/) to the form:
+```json
+{
+  "frames": [
+    [
+      [0, 1, 240, 255],
+      [1, 0, 242, 255],
+      [2, 0, 242, 255], 
+      [3, 0, 242, 255], 
+      [4, 1, 240, 255]
+    ],
+    [...],
+    [...],
+    [...]
+  ]
+}
+```
+
+
+
+Alternatively is converting each into a csv with a corresponding path within the [csv folder](csvs/) to the form:
 
 ```csv
-
 index,red,green,blue
 13,153,217,234
 14,153,217,234
 20,153,217,234
-
 ```
 
 Where **index** here is that of the pixel the value is read from. Images are resized according to the resolution stored in [conf.toml](conf.toml) if needed. 
@@ -88,6 +110,55 @@ Now we flatten the array for easier comparison/iteration later on.
 
   img.reshape(-1, img.shape[-1])
 
+```
+
+#### Adjusting for rotated or flipped images/displays
+In the second version of the display, made to fit the more robotic head, the design has been flipped and therefore the image pipeline must occomodate flipped/rotated displays.
+Luckily, OpenCV has provided us with the functions needed to flips and rotate images quickly.
+To enable us to pass the values of these transofrmations in an understandable way throughout the pipeline, we map the rotations and flips onto two separate Enums. The values of these are partials, given by the functools package.  
+
+For each of these enums, we have 4 essential parts:
+
+1. A function that maps the rotations/flips onto a function which will be called via the Enum value.
+
+```python
+def mapped_rotate(image: MatLike | UMat, rot: Rotation) -> MatLike | UMat:
+    return rotate(image, rot)
+```
+
+2. A function that does nothing but takes in the correct args for the base case.
+```python
+def nothing(image: MatLike | UMat, rot: Rotation = None, flip: Flip = None) -> MatLike | UMat:
+    return image
+```
+
+3. The Enum with the partial mappings.
+```python
+from enum import Enum
+from cv2 import ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE, flip, rotate, imread, imshow, waitKey
+from functools import partial
+
+class Rotation(Enum):
+    ROTATE_90 = partial(mapped_rotate, rot = ROTATE_90_COUNTERCLOCKWISE)
+    ROTATE_180 = partial(mapped_rotate, rot = ROTATE_180)
+    ROTATE_270 = partial(mapped_rotate, rot = ROTATE_90_CLOCKWISE)
+    NONE = partial(nothing, rot = None, flip = None)
+```
+
+4. Dunder methods within our enums which allow us to call these partials, and also return a default enum value.
+
+```python
+class Rotation(Enum):
+    ROTATE_90 = partial(mapped_rotate, rot = ROTATE_90_COUNTERCLOCKWISE)
+    ROTATE_180 = partial(mapped_rotate, rot = ROTATE_180)
+    ROTATE_270 = partial(mapped_rotate, rot = ROTATE_90_CLOCKWISE)
+    NONE = partial(nothing, rot = None, flip = None)
+  
+    def _missing_(cls, value: Self):
+          return cls.NONE
+
+      def __call__(self, *args):
+          return self.value(*args)
 ```
 
 ### Global Rendering Variables
