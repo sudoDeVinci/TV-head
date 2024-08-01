@@ -1,7 +1,7 @@
 from machine import I2C
 from time import sleep_ms
 from typing import *
-from math import sqrt, mean
+from math import sqrt
 
 class MPU6050:
     """Class for reading gyro rates and acceleration data from an MPU-6050 module via I2C."""
@@ -210,5 +210,3 @@ class MPU6050:
     
     def stdev(self, data, xbar=None):
         return sqrt(self.variance(data, xbar))
-
-

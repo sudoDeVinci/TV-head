@@ -24,13 +24,13 @@ ANIMATION_FOLDER:str = "/csvs/"
 # Pin number to address
 P: int = const(16)
 # Number of leds to address
-N: int = const(160)
+N: int = const(100)
 
 # Render variable values for playing animations.
 RENDER_VALUES: Dict[str, int | float] = {
     BRIGHTNESS: 0.1,
     SPEED: 1,
-    CHANNEL: 0
+    CHANNEL: 1
 }
 
 

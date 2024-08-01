@@ -7,6 +7,7 @@ class RotaryIRQ(Rotary):
     __slots__ = ('_label',
                  '_pin_clk',
                  '_pin_dt',
+                 'pull_up',
                  'IRQ_RISING_FALLING')
     
     IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
@@ -83,3 +84,23 @@ class RotaryIRQ(Rotary):
 
     def _hal_close(self) -> None:
         self._hal_disable_irq()
+
+
+ROTARYIRQ_BRIGHTNESS = RotaryIRQ(pin_num_clk = 18,
+                                pin_num_dt = 19,
+                                label = BRIGHTNESS,
+                                min_val = 0,
+                                max_val = 50,
+                                reverse = False,
+                                range_mode = Rotary.RANGE_WRAP
+                            )
+def rot_irq() -> None:
+    global ROTARYIRQ_BRIGHTNESS
+    global RENDER_VALUES
+    global animation_amount
+        
+    RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()] = (ROTARYIRQ_BRIGHTNESS.value() / 50)
+
+
+ROTARYIRQ_BRIGHTNESS.add_listener(rot_irq)
+ROTARYIRQ_BRIGHTNESS.set(value = RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()])

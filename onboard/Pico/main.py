@@ -1,12 +1,12 @@
 from rotaryirq import *
 from config import *
-
 from machine import Pin, freq, I2C
 from time import sleep_ms
 from neopixel import NeoPixel
 from micropython import alloc_emergency_exception_buf
 from MPU6050 import MPU6050
 from gc import collect
+import uasyncio as asyncio
 
 alloc_emergency_exception_buf(100)
 
@@ -19,47 +19,73 @@ def clear() -> None:
     display.write()
 
 
-def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
-    """
-    Play frames with a set time interval in ms.
-    """
-    global display
-    global RENDER_VALUES
-    global BRIGHTNESS
-    global CHANNEL
-    global SPEED
+async def read_gyro() :
+    global mpu
     
+    while True:
+        if mpu is None:
+            await asyncio.sleep_ms(250)
+        else:
+            x, y, z = mpu.sampled_gyro(20)
+            #print(f"X: {x:.2f}  Y: {y:.2f}  Z: {z:.2f}")
+            """
+            TODO:
+            if over 250, one animation, if under -250, another animation.
+            """
+            if x > 240:
+                pass
+            if x < -240:
+                pass
+            await asyncio.sleep_ms(50)
+        
+
+async def render(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> bool:
+
     b = RENDER_VALUES[BRIGHTNESS]
     ch = RENDER_VALUES[CHANNEL]
     for frame in frames:
         for p in frame:
             if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
-                clear()
-                return
+                return 1
             display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
         display.write()
-        sleep_ms(int(RENDER_VALUES[SPEED]*20))
-    
-    for i in range(100):
-        if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
-            clear()
-            return
-        sleep_ms(int(RENDER_VALUES[SPEED]*50))
-"""
-def read_position():
-    global mpu
-    
-    x, y ,z = mpu.sampled_gyro(SAMPLES)
-"""
+        await asyncio.sleep_ms(int(RENDER_VALUES[SPEED]*100))
+    return 0
+        
 
-def main() -> None:
+
+async def animate() -> None:
     global RENDER_VALUES
-    global RUNNING
+    global CHANNEL
+    global BRIGHTNESS
+    
+    """
+    Play frames with a set time interval in ms.
+    """
+    
+    while True:
+        current_frames = animations[RENDER_VALUES[CHANNEL]]
+    
+        render_value = await render(current_frames)
+        if render_value:
+            clear()
+            continue
+        
+        for i in range(100):
+            if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
+                clear()
+                break
+            await asyncio.sleep_ms(int(RENDER_VALUES[SPEED]*50))
+
+
+async def main() -> None:
+    global RENDER_VALUES
     global animations
     global CHANNEL
     
-    while True:
-        animate(animations[RENDER_VALUES[CHANNEL]])
+    asyncio.create_task(animate())
+    asyncio.create_task(read_gyro())
+    while True: await asyncio.sleep_ms(10_000_000)
 
 
 
@@ -70,46 +96,21 @@ Base clock is 125MHz.
 """
 try:
     freq(240000000)
-    print(f"GOOD TO GO @ {(freq()/1000000):.3f} MHZ")
 except Exception as e:
     print("Core overclock not applied.")
-    print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
+
+print(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 # Define display to draw to.
 # Display is our array of leds.
 display = NeoPixel(Pin(P), N, timing = 1)
 # Set up the I2C interface
-#i2c = I2C(1, sda = Pin(14), scl = Pin(15))
-#print(i2c.scan())
+i2c = I2C(1, sda = Pin(14), scl = Pin(15))
 # Set up the MPU6050 class 
-#mpu = MPU6050(i2c)
+mpu = MPU6050(i2c)
 # wake up the MPU6050 from sleep
-#mpu.wake()
-
-ROTARYIRQ_BRIGHTNESS = RotaryIRQ(pin_num_clk = 18,
-                                pin_num_dt = 19,
-                                label = CHANNEL,
-                                min_val = 0,
-                                max_val = animation_amount - 1,
-                                reverse = False,
-                                range_mode = Rotary.RANGE_WRAP
-                            )
+mpu.wake()
 
 
-def rot_irq() -> None:
-    global ROTARYIRQ_BRIGHTNESS
-    global RENDER_VALUES
-    global animation_amount
-        
-    #RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()] = (ROTARYIRQ_BRIGHTNESS.value() / 200)
-    #print(RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()])
-    print("***")
 
-
-ROTARYIRQ_BRIGHTNESS.add_listener(rot_irq)
-ROTARYIRQ_BRIGHTNESS.set(value = RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()])
-
-while True:
-    print(ROTARYIRQ_BRIGHTNESS.value())
-
-main()
+asyncio.run(main())
