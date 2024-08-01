@@ -63,7 +63,10 @@ async def animate() -> None:
     Play frames with a set time interval in ms.
     """
     
+    
     while True:
+        b = RENDER_VALUES[BRIGHTNESS]
+        ch = RENDER_VALUES[CHANNEL]
         current_frames = animations[RENDER_VALUES[CHANNEL]]
     
         render_value = await render(current_frames)
