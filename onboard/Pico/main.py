@@ -67,6 +67,7 @@ async def animate() -> None:
     while True:
         b = RENDER_VALUES[BRIGHTNESS]
         ch = RENDER_VALUES[CHANNEL]
+        
         current_frames = animations[RENDER_VALUES[CHANNEL]]
     
         render_value = await render(current_frames)
@@ -86,6 +87,7 @@ async def main() -> None:
     global animations
     global CHANNEL
     
+    clear()
     asyncio.create_task(animate())
     asyncio.create_task(read_gyro())
     while True: await asyncio.sleep_ms(10_000_000)

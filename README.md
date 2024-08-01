@@ -45,7 +45,7 @@ The wiring of the LEDs is the same as the original made by Vivian. Don't fix wha
 
 ## How it Works 
 
-Images (either pixel art or other) are converted via the [Open-CV](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into csv files containing the flattened (2D) pixel index and rgb values. These csvs are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
+Images (either pixel art or other) are converted via the [Open-CV](https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html) library into either JSON or CSV files containing the flattened (2D) pixel index and rgb values. These are loaded onto the board where they can now be mapped onto the LED strip pixels. In this way, we retain the pixel data but save on memory.
 
 This implementation allows a couple of ways of playing these frames on the device:
 1. Having folders of sequential csv files which can be made into animations, with each file as a single frame.
@@ -164,13 +164,19 @@ class Rotation(Enum):
 ### Global Rendering Variables
 
 To be able to change global values such as the current brightness, channel, and speed, we keep them in a dictionary with their values.
+
 ```Python
 
-  values = {
-    "Brightness": 0.4,
-    "Speed": 1,
-    "Channel": 0
-  }
+  # Variables to define constant labels
+  BRIGHTNESS: str = const("Brightness")
+  CHANNEL: str = const("Channel")
+  SPEED: str = const("Speed")
+
+  RENDER_VALUES: Dict[str, int | float] = {
+    BRIGHTNESS: 0.1,
+    SPEED: 1,
+    CHANNEL: 1
+}
 
 ```
 
@@ -184,9 +190,9 @@ To address the LEDS, we use the [NeoPixel](https://docs.micropython.org/en/lates
   from neopixel import NeoPixel
 
   # Pin number to address
-  P = 21
+  P: int = const(16)
   # Number of leds to address
-  N = 96
+  N: int = const(100)
 
   # Define display to draw to
   # Display is our array of leds.
@@ -218,84 +224,143 @@ Firstly we get all the frames for the current animation playing:
     Read the frames within a given animation folder and return it as a tuple[index, r, g, b] of ints.
     """
     def assemble(filename:str) -> Tuple[Tuple[int, int, int, int]]:
-      frame: Tuple[Tuple[int, int, int, int]] = None
-      with open(filename, 'r', encoding = "utf-8") as csvfile:
-        """
-        Skip the first line so we can directly convert each line to tuple[int, int, int, int].
-        """
-        next(csvfile)
-        frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
-          
-      return frame
+        frame: Tuple[Tuple[int, int, int, int]] = None
+        with open(filename, 'r', encoding = "utf-8") as csvfile:
+            """
+            Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+            """
+            next(csvfile)
+            frame = tuple((int(i), int(a), int(b), int(c)) for i, a, b, c in (line.rstrip('\n').rstrip('\r').split(",") for line in csvfile))
+            
+        return frame
                 
     frames = tuple(assemble("/".join([folder_path, filename])) for filename in listdir(folder_path) if filename.endswith('.csv'))
-
+    
     return frames
   
 ```
 
-We read the current animation index according to the value in the global dictionary. In main we call it like so:
+We create two tasks for scheduling, the rendering on screen and the reading of sensors such as gyroscopes. Both reading the sensors and rendering require frequent delays, meainng switching between these tasks can be smoothly done. In main we call it like so:
 
 ```Python
 
-  while RUNNING:
-    animate(animations[values['Channel']])
-    sleep_ms(values["Speed"]*5000)
+  async def main() -> None:
+    global RENDER_VALUES
+    global animations
+    global CHANNEL
+    
+    asyncio.create_task(animate())
+    asyncio.create_task(read_gyro())
+    while True: await asyncio.sleep_ms(10_000_000)
 
 ```
 
 To display an image, we would simply loop through a list of these pixel values and assign them to the corresponding pixel.
-We skip the first item in the list because it's the header for the csv file. For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear. So here, to turn down the brightness, we simply have a brightness coefficient from 0.0 to ~0.8 as our global value changed via interrupt. This way, our final brightness is gotten by a simple multiplication:
+For LEDs which do not use RGBW but RGB, brightness is controlled by the colour value of the respective channels. (25,25,25) and (250,250,250) are the same colour, however the second one is brighter.  Remember also that light intensity is logarithmic, not linear. So here, to turn down the brightness, we simply have a brightness coefficient from 0.0 to ~0.8 as our global value changed via interrupt. This way, our final brightness is gotten by a simple multiplication. Since we have sensors and other peripherals changing our rendering values, we check upon each loop iteration if there is a change. If there is, we return True, whereas if no change, we return False.:
 
 ```Python
-
-  def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
-      """
-      Play frames with a set time interval in ms.
-      """
-      global display
-      b = values["Brightness"]
-      for frame in frames:
-          for p in frame:
-              display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
-          display.write()
-          sleep_ms(values["Speed"]*20)
-
+async def render(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> bool:
+    b = RENDER_VALUES[BRIGHTNESS]
+    ch = RENDER_VALUES[CHANNEL]
+    for frame in frames:
+        for p in frame:
+            if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
+                return 1
+            display[p[0]] = int(p[3]*b), int(p[2]*b), int(p[1]*b)
+        display.write()
+        await asyncio.sleep_ms(int(RENDER_VALUES[SPEED]*100))
+    return 0
 ```
 
-We go out of our way here to pretty much always use Tuples rather than Lists for memory savings. We wont be changing the frames and their details once loaded, unless we change the channel, in which cause we scrap them all at once anyway. Image paths as well are basically constant once loaded. The immutability is a plus-side, and it allows for faster looping and less computational overhead for certain operations which become much more pronounced on a tiny MCU like a Pi Pico.
+Animating the screen also involves the pauses between animation however. During this pause, rendering values like BRIGHTNESS and CHANNEL may once again be changed via peripherals and must be checked. This means we have a loop, checking for changes and sleeping upon iteration rather than a single long sleep.
 
-In the main function, it's a very simple flow. Clear the screen, load the animations, and play the one designated in the global dictionary.
-We pre-load all the animations at once since they dont actually contain that much information. This is much faster than having to read and assemble the animation from flash memory every time we switch channels.
+```Python
+async def animate() -> None:
+    global RENDER_VALUES
+    global CHANNEL
+    global BRIGHTNESS
+    
+    """
+    Play frames with a set time interval in ms.
+    """
+    
+    
+    while True:
+        b = RENDER_VALUES[BRIGHTNESS]
+        ch = RENDER_VALUES[CHANNEL]
+        
+        current_frames = animations[RENDER_VALUES[CHANNEL]]
+    
+        render_value = await render(current_frames)
+        if render_value:
+            clear()
+            continue
+        
+        for i in range(100):
+            if RENDER_VALUES[CHANNEL] != ch or RENDER_VALUES[BRIGHTNESS] != b:
+                clear()
+                break
+            await asyncio.sleep_ms(int(RENDER_VALUES[SPEED]*50))
+```
+
+
+We go out of our way here to pretty much always use Tuples rather than Lists for memory savings. We wont be changing the frames and their details once loaded. Image paths as well are constant once loaded. The immutability is a plus-side, and it allows for faster looping and less computational overhead for certain operations which become much more pronounced on a tiny MCU like a Pi Pico.
+
+In the main function, it's a very simple flow. Clear the screen, begin animation task and begin sensor polling task.
 
 ```Python
 
-  def main() -> None:
+  async def main() -> None:
+    global RENDER_VALUES
     global animations
-    global values
-    global RUNNING
+    global CHANNEL
     
     clear()
-    
-    # Pre-load animations in a Tuple. 
-    animations = tuple(read_frames(folder) for folder in animation_paths)
-    
-    print(free())
-    
-    while RUNNING:
-        animate(animations[values['Channel']])
-        sleep_ms(values["Speed"]*5000)
-
-
-  if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:    
-        print(e)
-        clear()
+    asyncio.create_task(animate())
+    asyncio.create_task(read_gyro())
+    while True: await asyncio.sleep_ms(10_000_000)
       
 ```
 
-## Menu layout
+### Knobs for Changing Values
 
-*-- TODO --*
+Manual value control are done via Rotary Controllers. This is the simplest way and allows a more retro look for analog knobs. We modified code from [here](https://github.com/MikeTeachman/micropython-rotary), mostly small changes. The [RotaryIRQ class](/onboard/Pico/rotaryirq.py) wraps the rotary class, and provides a nicer interface from usage.
+The way that the rotary encoder class works is that callbacks are triggered every time the encoder is rotated.The callbacks are registered via the .add_listener() method, added to a list, and take no arguments. The callbacks are registered as hardware interrupts, and therefore will interrupt already running code. It's best to keep these short and only do a few things in them.
+<br>
+Create one like so:
+
+```python
+ROTARYIRQ_BRIGHTNESS = RotaryIRQ(pin_num_clk = 18,
+                                pin_num_dt = 19,
+                                label = BRIGHTNESS,
+                                min_val = 0,
+                                max_val = 50,
+                                reverse = False,
+                                range_mode = Rotary.RANGE_WRAP
+```
+
+Then a simple callback would be to set the global brightness value based on the value() of the rotary controller.
+
+```python
+def rot_irq() -> None:
+    global ROTARYIRQ_BRIGHTNESS
+    global RENDER_VALUES
+    global animation_amount
+        
+    RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()] = (ROTARYIRQ_BRIGHTNESS.value() / 50)
+
+```
+
+Then we would add the listener to the list of callbacks to trigger during the hardware interrupt.
+
+```Python
+
+ROTARYIRQ_BRIGHTNESS.add_listener(rot_irq)
+
+```
+
+And finally, set and initial value for the object to avoid jumping values during the first movements.
+
+```
+ROTARYIRQ_BRIGHTNESS.set(value = RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()])
+```
