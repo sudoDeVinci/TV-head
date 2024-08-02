@@ -57,9 +57,9 @@ def _nonzero(img: Mat) -> Tuple[Tuple[int, int, int, int]]:
 
 def convert_images(img_paths: List[str],
                    target_dimensions:Tuple[int,int],
-                   rotator: Rotation = Rotation.NONE,
+                   rotation: Rotation = Rotation.NONE,
                    flipper: Flip = Flip.NONE
-                  ) -> None:
+                  ) -> List[List[Tuple[int, int, int, int]]]:
     """
     Given a list of image paths, convert these into  
     """
@@ -68,16 +68,18 @@ def convert_images(img_paths: List[str],
     width, height = target_dimensions
     
     IMAGES = array([imread(img_path) for img_path in img_paths], dtype=uint8)
+    
+    print(rotation)
 
     frames:List[List[Tuple[int, int, int, int]]] = comparator(IMAGES,
-                                                              label, 
                                                               width, 
                                                               height, 
-                                                              rotator=rotator, 
+                                                              rotator = rotation, 
                                                               flipper = flipper)
 
-    write_json(img_path)
+    #write_json(img_path)
     #save_frames(frames, label)
+    return frames
 
 def comparator(IMAGES: NDArray, 
                width: int, 
@@ -116,13 +118,15 @@ def comparator(IMAGES: NDArray,
 def convert_dir(folder: str, 
                 target_dimensions:Tuple[int,int], 
                 rotator: Rotation = Rotation.NONE, 
-                flipper: Flip = Flip.NONE) -> None:
+                flipper: Flip = Flip.NONE) -> List[List[Tuple[int, int, int, int]]]:
     
     animas = [path.join(IMAGE_DIR, folder, _) for _ in listdir(path.join(IMAGE_DIR, folder)) if isimage(_)]
-    convert_images(animas, 
+    frames = convert_images(animas, 
                    target_dimensions, 
-                   rotator=rotator, 
+                   rotation=rotator, 
                    flipper=flipper)
+    
+    save_frames_csv(frames, folder)
 
 def convert_all(target_dimensions:Tuple[int,int],
                 rotator: Rotation = Rotation.NONE, 

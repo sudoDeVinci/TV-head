@@ -28,3 +28,5 @@ print(f"Number of Images: {len(images)}")
 frames = comparator(IMAGES = images, width = width, height = height, rotator = Rotation.ROTATE_90)
 save_frames_json(frames, filename)
 """
+
+convert_all((10, 10), Rotation.NONE, Flip.NONE)
