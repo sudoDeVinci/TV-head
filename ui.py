@@ -8,9 +8,11 @@ class SelectorEnum():
     Base Enum for menu selections.
     """
 
+    NAC = None
+
     @classmethod
     def _missing_(cls, value: Any) -> Optional['SelectorEnum']:
-        return cls.BACK
+        return cls.NAC
     
     @classmethod
     def members(cls) -> Tuple[Self] | None:
@@ -32,7 +34,7 @@ class SelectorEnum():
             if choice == ctype.value:
                 return ctype
             
-        return cls.BACK
+        return cls.NAC
 
 def parseIntInput() -> int:
     """
@@ -65,6 +67,9 @@ def welcome() -> None:
 def config_loaded() -> None:
     print("\n\tᕕ(ᐛ)ᕗ Config Loaded!\n")
 
+def message_err(err: str):
+    print(f"\n\tERR:-> {err}")
+
 
 # UI elements for selecting Image Mode
 
@@ -75,7 +80,7 @@ class ImageMode(SelectorEnum, Enum):
     SPRITE = 3
     
 def ImageModeMenuPrintout() -> None:
-    out = f"""
+    out = f"""Select Image Mode:\n
     {ImageMode.BACK.value}: Back
     {ImageMode.SINGLE.value}: Single frame
     {ImageMode.MULTIPLE.value}: Multiple frames
@@ -84,7 +89,7 @@ def ImageModeMenuPrintout() -> None:
     print(out)
 
 def ImageModeMenu() -> ImageMode:
-    choice = parseBoundedIntInput(len(ImageMode.members()) - 1, ImageMode.BACK)
+    choice = parseBoundedIntInput(len(ImageMode.members()) - 2, ImageMode.BACK.value)
     return ImageMode.match(choice)
     
 
@@ -98,7 +103,7 @@ class RotationMode(SelectorEnum, Enum):
     NONE = 4
     
 def RotationModeMenuPrintout() -> None:
-    out = f"""
+    out = f"""Select Image Rotation:
     {RotationMode.BACK.value}: Back
     {RotationMode.ROTATE_90.value}: Rotate 90° clockwise
     {RotationMode.ROTATE_180.value}: Rotate 180°
@@ -109,7 +114,7 @@ def RotationModeMenuPrintout() -> None:
     
 
 def RotationModeMenu() -> RotationMode:
-    choice = parseBoundedIntInput(len(RotationMode.members()) - 1, RotationMode.BACK)
+    choice = parseBoundedIntInput(len(RotationMode.members()) - 2, RotationMode.BACK.value)
     return RotationMode.match(choice)
 
 
@@ -124,7 +129,7 @@ class FlipMode(SelectorEnum, Enum):
     
 
 def FlipModeMenuPrintout() -> None:
-    out = f"""
+    out = f"""Select Image Flip
     {FlipMode.BACK.value}: Back
     {FlipMode.VERTICAL_FLIP.value}: Vertical flip
     {FlipMode.HORIZONTAL_FLIP.value}: Horizontal flip
@@ -135,6 +140,6 @@ def FlipModeMenuPrintout() -> None:
 
 
 def FlipModeMenu() -> FlipMode:
-    choice = parseBoundedIntInput(len(FlipMode.members()) - 1, FlipMode.BACK)
+    choice = parseBoundedIntInput(len(FlipMode.members()) - 2, FlipMode.BACK.value)
     return FlipMode.match(choice)
 
