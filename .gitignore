@@ -2,5 +2,10 @@
 *.csv
 Scripts/*
 Lib/*
+lib/*
+lib64/*
+lib64
 Include/*
+include/*
+bin/*
 pyvenv.cfg
