@@ -1,3 +1,0 @@
-from controller import *
-
-main()

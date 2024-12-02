@@ -1,5 +1,9 @@
-from tvlib import *
-from ui import *
+from tvlib.transformations import Flip, Rotation
+from tvlib._config import Config
+from ui import (ImageMode, ImageModeMenu, ImageModeMenuPrintout,
+                RotationMode, RotationModeMenu, RotationModeMenuPrintout,
+                FlipMode, FlipModeMenu, FlipModeMenuPrintout,
+                message_err, welcome, config_loaded)
 
 resolution = None
 done: bool = False
@@ -9,6 +13,7 @@ image_settings = {
     'imagemode': None
 }
 
+
 def init():
     global resolution
     welcome()
@@ -16,17 +21,17 @@ def init():
     config_loaded()
     resolution = Config.get_res()
 
-def main ():
+
+def main():
     init()
     imageModeSelect()
-    
 
 
 def imageModeSelect() -> None:
     global image_settings
 
     mode: ImageMode
-    
+
     while True:
         ImageModeMenuPrintout()
         mode = ImageModeMenu()
@@ -39,7 +44,8 @@ def imageModeSelect() -> None:
         else:
             image_settings['imagemode'] = mode
             rotationModeSelect()
-            if done: return None
+            if done:
+                return None
 
 
 def rotationModeSelect() -> None:
@@ -53,7 +59,7 @@ def rotationModeSelect() -> None:
         if mode is RotationMode.NAC:
             message_err("Please select a choice from the menu given.")
             continue
-        
+
         elif mode is RotationMode.BACK:
             return None
 
@@ -71,10 +77,10 @@ def rotationModeSelect() -> None:
                     image_settings['rotation'] = Rotation.NONE
                 case _:
                     image_settings['rotation'] = Rotation.NONE
-                
-            flipModeSelect()
-            if done: return None
 
+            flipModeSelect()
+            if done:
+                return None
 
 
 def flipModeSelect() -> FlipMode:
@@ -90,7 +96,7 @@ def flipModeSelect() -> FlipMode:
         if mode is FlipMode.NAC:
             message_err("Please select a choice from the menu given.")
             continue
-        
+
         elif mode is FlipMode.BACK:
             return None
 
@@ -108,4 +114,4 @@ def flipModeSelect() -> FlipMode:
                     image_settings['flip'] = Flip.NONE
                 case _:
                     image_settings['flip'] = Flip.NONE
-            done = True   
+            done = True
