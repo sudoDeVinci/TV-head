@@ -1,4 +1,5 @@
-from tvlib._config import *
+from tvlib._config import write_json
+from typing import Tuple
 
 """
 Getting variable sized led screens for testing on https://wokwi.com
@@ -11,7 +12,7 @@ def get_res() -> Tuple[int, int]:
     Get the resolution of the display from the config file.
     """
     res = []
-    with open('upload/res.txt', 'r', encoding = 'utf-8') as r:
+    with open('upload/res.txt', 'r', encoding='utf-8') as r:
         res = [int(line.rstrip('\n')) for line in r]
     return tuple(res)
 
@@ -32,15 +33,29 @@ def get_json(width: int, height: int) -> str:
     display_connections = []
     for row in range(height):
         for col in range(width):
-            led_string = "{ " + type + ", \"id\": \"rgb" + str(number+1) + "\", \"top\": " + str(init_top+(row*30)) + ", \"left\": " + str(init_left+(col*30))+ attrs +" }"
+            # led_string = "{ " + type + ", \"id\": \"rgb" + str(number+1) +
+            # "\", \"top\": " + str(init_top+(row*30)) + ", \"left\": " +
+            # str(init_left+(col*30))+ attrs +" }"
+            bcf = '{'
+            bcs = '}'
+            led_string = (
+                f"{bcf}{type}, \"id\": \"rgb{number+1}\", "
+                f"\"top\": {init_top+(row*30)}, \"left\": {init_left+(col*30)}"
+                f"{attrs}{bcs}"
+            )
             display.append(led_string)
             if number != max+1:
-                led_voltage_string = "[ \"rgb" + str(number+1) + ":VDD\", \"rgb" + str(number+2) + ":VSS\", \"green\", [ \"h0\" ] ]"
-                led_data_string = "[ \"rgb" + str(number+1) + ":DOUT\", \"rgb" + str(number+2) + ":DIN\", \"green\", [ \"h0\" ] ]"
+                led_voltage_string = (
+                    "[ \"rgb" + str(number+1) + ":VDD\", \"rgb" +
+                    str(number+2) + ":VSS\", \"green\", [ \"h0\" ] ]"
+                )
+                led_data_string = (
+                    f"[ \"rgb{number+1}:DOUT\", \"rgb{number+2}:DIN\","
+                    f" \"green\", [ \"h0\" ] ]"
+                )
                 display_connections.append(led_voltage_string)
                 display_connections.append(led_data_string)
-            number+=1
-
+            number += 1
 
     headerstring = """{
     \"version\": 1,
@@ -65,5 +80,7 @@ def get_json(width: int, height: int) -> str:
     dependencies = """\"dependencies\": {} \n}"""
     return f"{headerstring}{connections}{dependencies}"
 
-def save(savepath: str = "diagram.json", data = "{}") -> None:
+
+def save(savepath: str = "diagram.json", data="{}") -> None:
     write_json(savepath, data)
+

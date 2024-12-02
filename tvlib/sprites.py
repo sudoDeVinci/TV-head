@@ -1,20 +1,25 @@
 import pygame
-from pygame.locals import *
-from tvlib._config import *
+from tvlib._config import MatLike
+from numpy import array, uint8
+from typing import Tuple
+from cv2 import cvtColor, COLOR_RGB2BGR
 
 
-def _filter_pixels(arr: NDArray, value: int) -> NDArray:
+def _filter_pixels(arr: MatLike, value: int) -> MatLike:
     """
     Given a List of 3D numpy arrays representing images,
     filter out all images that are completely a single value
     """
-    return array([img for img in arr if not (img == value).all()])
+    return array([img for img in arr if not (img == value).all()],
+                 dtype=uint8)
 
 
-def sprite_to_array(size: Tuple[int, int], file: str, background_value:int = 0) -> NDArray:
+def sprite_to_array(size: Tuple[int, int],
+                    file: str,
+                    background_value: int = 0) -> MatLike:
     """
     Given a sprite sheet where the height and width of the sprites are known,
-    extract each sprite to a seprate image and save them sequentially in an array.
+    extract each sprite to a seprate image and save them sequentially.
     """
     width, height = size
     sprites = []
@@ -32,5 +37,5 @@ def sprite_to_array(size: Tuple[int, int], file: str, background_value:int = 0) 
             imgdata = cvtColor(imgdata, COLOR_RGB2BGR)
             sprites.append(imgdata)
 
-    # return array([img for img in sprites])
-    return _filter_pixels(array(sprites, dtype = uint8), value=background_value)
+    return _filter_pixels(array(sprites, dtype=uint8),
+                          value=background_value)

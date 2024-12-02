@@ -61,5 +61,7 @@ class BoardCatalog(BoardType, Enum):
 
 
 if __name__ == "__main__":
-    print(f"Matching via the match method: {BoardCatalog.match('esp32') == ESP32Boards.ESP32}")
-    print(f"Matching via .value attribute: {BoardCatalog.ESP32.value.ESP32S3 == ESP32Boards.ESP32S3}")
+    print(f"Matching via the match method: "
+          f"{BoardCatalog.match('esp32') == ESP32Boards.ESP32}")
+    print(f"Matching via .value attribute: "
+          f"{BoardCatalog.ESP32.value.ESP32S3 == ESP32Boards.ESP32S3}")

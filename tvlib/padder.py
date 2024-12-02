@@ -1,8 +1,11 @@
 """
-This script renames the sequencially numbered files with a new name with padded zeroes.
+This script renames the sequencially numbered files
+with a new name with padded zeroes.
 """
 
-from tvlib._config import *
+from tvlib._config import debug, IMAGE_DIR
+from os import path, walk, rename
+
 
 def _find_digit_bound(filename: str) -> tuple[bool, int] | tuple[bool, None]:
     """
@@ -15,26 +18,27 @@ def _find_digit_bound(filename: str) -> tuple[bool, int] | tuple[bool, None]:
             continue
         else:
             return (True, i)
-    
+
     return (False, None)
+
 
 def padder(base_path: str):
     """
     Traverse through the folders in a top-folder.
     """
     if path.isdir(base_path):
-            for root, folders, __ in walk(base_path):
-                for folder in folders:
-                    base_path = path.join(root, folder)
-                    if path.isdir(base_path):
-                        _file_traverse(base_path)
+        for root, folders, __ in walk(base_path):
+            for folder in folders:
+                base_path = path.join(root, folder)
+                if path.isdir(base_path):
+                    _file_traverse(base_path)
     else:
         print("Not a dir")
-                        
+
 
 def _file_traverse(base_path: str):
     """
-    Traverse through files in a directory. 
+    Traverse through files in a directory.
     If the fil ehas a number to it, pad
     """
     if path.isdir(base_path):
@@ -56,8 +60,11 @@ def _padded_rename(filename: str, dirname: str, frame_path: str) -> None:
     if found:
         new_filename_prefix = filename[:(digit+1)]
         new_filename_suffix = filename[(digit+1):].zfill(6) + ".png"
-        debug(new_filename_prefix + new_filename_suffix)
-        rename(frame_path, path.join(IMAGE_DIR, dirname, new_filename_prefix + new_filename_suffix))
+        newfn = f"{new_filename_prefix}{new_filename_suffix}"
+        debug(newfn)
+        rename(frame_path, path.join(IMAGE_DIR,
+                                     dirname,
+                                     newfn))
 
 
 if __name__ == "__main__":
