@@ -19,10 +19,17 @@ DEBUG: bool = False
 
 
 def out01(x: str) -> None:
-    pass
+    """
+    Print the given string.
+    """
+    print(x)
 
 
 def out02(x: str) -> None:
+    """
+    Don't print the given string.
+    This is a dummy function.
+    """
     pass
 
 
@@ -90,7 +97,8 @@ def read_frames(folder_path: str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
         frame: Tuple[Tuple[int, int, int, int]] = None
         with open(filename, 'r', encoding="utf-8") as csvfile:
             """
-            Skip the first line so we can directly convert each line to tuple[int, int, int, int].
+            Skip the first line so we can directly
+            convert each line to tuple[int, int, int, int].
             """
             next(csvfile)
             frame = tuple((int(i), int(a), int(b), int(c))

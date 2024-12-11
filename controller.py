@@ -13,6 +13,8 @@ image_settings = {
     'imagemode': None
 }
 
+ERR = "Please select a choice from the menu given."
+
 
 def init():
     global resolution
@@ -36,7 +38,7 @@ def imageModeSelect() -> None:
         ImageModeMenuPrintout()
         mode = ImageModeMenu()
         if mode is ImageMode.NAC:
-            message_err("Please select a choice from the menu given.")
+            message_err(ERR)
             continue
         elif mode is ImageMode.BACK:
             return None
@@ -57,7 +59,7 @@ def rotationModeSelect() -> None:
         RotationModeMenuPrintout()
         mode = RotationModeMenu()
         if mode is RotationMode.NAC:
-            message_err("Please select a choice from the menu given.")
+            message_err(ERR)
             continue
 
         elif mode is RotationMode.BACK:
@@ -94,7 +96,7 @@ def flipModeSelect() -> FlipMode:
         mode = FlipModeMenu()
 
         if mode is FlipMode.NAC:
-            message_err("Please select a choice from the menu given.")
+            message_err(ERR)
             continue
 
         elif mode is FlipMode.BACK:

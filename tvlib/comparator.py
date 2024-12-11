@@ -57,7 +57,7 @@ def _realign(img: MatLike,
     return img.reshape(-1, img.shape[-1])
 
 
-def _nonzero(img: MatLike) -> Tuple[Tuple[int, int, int, int]]:
+def _nonzero(img: MatLike) -> List[Tuple[int, int, int, int]]:
     """
     Extract non-zero values from image.
     """
@@ -97,7 +97,7 @@ def comparator(IMAGES: MatLike,
                height: int,
                rot: Rotation = Rotation.NONE,
                flip: Flip = Flip.NONE
-               ) -> List[List[Tuple[int, int, int, int]]]:
+               ) -> List[List[Tuple[int, int, int, int]]] | None:
     """
     Given a list of images, convert these into frames and return it.
     """
@@ -162,5 +162,5 @@ def convert_all(target_dimensions: Tuple[int, int],
             print(folder)
             convert_dir(folder,
                         target_dimensions,
-                        rotator=rotator,
-                        flipper=flipper)
+                        rotator,
+                        flipper)

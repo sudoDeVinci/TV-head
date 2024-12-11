@@ -22,10 +22,17 @@ HEADER: Tuple[str] = ('index', 'blue', 'green', 'red')
 
 
 def out01(x: str) -> None:
+    """
+    Print the given string.
+    """
     print(x)
 
 
 def out02(x: str) -> None:
+    """
+    Don't print the given string.
+    This is a dummy function.
+    """
     pass
 
 
@@ -36,8 +43,8 @@ class Config:
     """
     Static Config class to hold configuration details.
     """
-    _height: int = None
-    _width: int = None
+    _height: int | None = None
+    _width: int | None = None
     _board_type: BoardCatalog = BoardCatalog.UNKNOWN
     _required_keys: Dict = {
         "resolution": ["width", "height"],

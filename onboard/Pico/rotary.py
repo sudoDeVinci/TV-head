@@ -179,10 +179,10 @@ class Rotary(object):
         old_value = self._value
         clk_dt_pins = (self._hal_get_clk_value() <<
                        1) | self._hal_get_dt_value()
-                       
+
         if self._invert:
             clk_dt_pins = ~clk_dt_pins & 0x03
-            
+
         # Determine next state
         if self._half_step:
             self._state = _transition_table_half_step[self._state &
@@ -204,19 +204,17 @@ class Rotary(object):
             self._value = self._wrap(self._value,
                                      incr,
                                      self._min_val,
-                                     self._max_val
-                                    )
+                                     self._max_val)
         elif self._range_mode == self.RANGE_BOUNDED:
             self._value = self._bound(self._value,
                                       incr,
                                       self._min_val,
-                                      self._max_val
-                                    )
+                                      self._max_val)
         else:
             self._value = self._value + incr
 
         try:
             if old_value != self._value and len(self._listener) != 0:
                 self._trigger()
-        except:
+        except Exception:
             pass
