@@ -4,7 +4,6 @@ from neopixel import NeoPixel
 from micropython import alloc_emergency_exception_buf
 from MPU6050 import MPU6050
 import uasyncio as asyncio
-from typing import Tuple
 from config import (RENDER_VALUES, BRIGHTNESS, CHANNEL, SPEED,
                     animations, P, N, debug)
 
@@ -40,7 +39,7 @@ async def read_gyro():
             await asyncio.sleep_ms(50)
 
 
-async def render(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> bool:
+async def render(frames: tuple[tuple[tuple[int, int, int, int]]]) -> bool:
 
     b = RENDER_VALUES[BRIGHTNESS]
     ch = RENDER_VALUES[CHANNEL]

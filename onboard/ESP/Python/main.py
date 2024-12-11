@@ -9,7 +9,6 @@ from machine import Pin, UART, freq
 from neopixel import NeoPixel
 from time import sleep_ms
 from os import listdir, ilistdir, statvfs
-from typing import Tuple, Dict
 from random import randint
 import gc
 
@@ -69,7 +68,7 @@ except Exception:
 debug(f"-> Current speed is: {(freq()/1000000):.3f} MHZ")
 
 
-def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> Tuple[str]:
+def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> tuple[str]:
     """
     Get a tuple of the animation folder paths.
     """
@@ -81,20 +80,20 @@ animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)-1
 animations = list()
 
-values: Dict[str, float | int] = {
+values: dict[str, float | int] = {
     BRIGHTNESS: 0.15,
     SPEED: 1,
     CHANNEL: 0
 }
 
 
-def read_frames(folder_path: str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
+def read_frames(folder_path: str) -> tuple[tuple[tuple[int, int, int, int]]]:
     """
     Read the frames within a given animation folder and return it
     as a tuple[index, r, g, b] of ints.
     """
-    def assemble(filename: str) -> Tuple[Tuple[int, int, int, int]]:
-        frame: Tuple[Tuple[int, int, int, int]] = None
+    def assemble(filename: str) -> tuple[tuple[int, int, int, int]]:
+        frame: tuple[tuple[int, int, int, int]] = None
         with open(filename, 'r', encoding="utf-8") as csvfile:
             """
             Skip the first line so we can directly
@@ -148,7 +147,7 @@ def free(full=False) -> str:
         return ('Total:{0} Free:{1} ({2})'.format(T, F, P))
 
 
-def animate(frames: Tuple[Tuple[Tuple[int, int, int, int]]]) -> None:
+def animate(frames: tuple[tuple[tuple[int, int, int, int]]]) -> None:
     """
     Play frames with a set time interval in ms.
     """
@@ -166,7 +165,7 @@ def main() -> None:
     global values
     global RUNNING
 
-    # Pre-load animations in a Tuple.
+    # Pre-load animations in a tuple.
     animations = tuple(read_frames(folder) for folder in animation_paths)
 
     debug(free())

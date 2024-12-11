@@ -27,7 +27,7 @@ class SelectorEnum():
         return tuple(names for names, _ in cls.__members__.items())
 
     @classmethod
-    @lru_cache(maxsize=None)
+    @lru_cache()
     def match(cls, choice: int) -> Optional['SelectorEnum']:
         if not hasattr(cls, '__members__'):
             return None

@@ -1,6 +1,4 @@
 from machine import I2C
-from time import sleep_ms
-from typing import List, Iterable
 from math import sqrt
 
 
@@ -20,7 +18,7 @@ class MPU6050:
         self.address = address
         self.i2c = i2c
 
-    def _median(self, lst: List[float]) -> float:
+    def _median(self, lst: list[float]) -> float:
         n = len(lst)
         s = sorted(lst)
         mid = n // 2
@@ -29,14 +27,14 @@ class MPU6050:
         else:
             return s[mid]
 
-    def _IQR(self, lst: List[float]) -> tuple[float, float, float]:
+    def _IQR(self, lst: list[float]) -> tuple[float, float, float]:
         n = len(lst)
         s = sorted(lst)
         q1 = self._median(s[:n//2])
         q3 = self._median(s[(n+1)//2:])
         return q1, q3, q3 - q1
 
-    def _filter(self, lst: List[float]) -> tuple[float]:
+    def _filter(self, lst: list[float]) -> tuple[float]:
         # Compute Q1, Q3, and IQR
         q1, q3, iqr = self._IQR(lst)
         lower_bound = q1 - 1.5 * iqr
@@ -223,10 +221,10 @@ class MPU6050:
         else:
             raise Exception(f"Range index {index} invalid. Must be 0-3.")
 
-    def _mean(self, data: Iterable) -> float:
+    def _mean(self, data: list) -> float:
         return sum(data)/len(data)
 
-    def _ss(self, data: Iterable, c=None):
+    def _ss(self, data: list, c=None):
         if c is None:
             c = self._mean(data)
         total = total2 = 0

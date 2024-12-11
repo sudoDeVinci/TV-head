@@ -8,7 +8,6 @@
 #   https://github.com/MikeTeachman/micropython-rotary
 
 from micropython import const
-from typing import Self, List, Callable
 
 _DIR_CW = const(0x10)  # Clockwise step
 _DIR_CCW = const(0x20)  # Counter-clockwise step
@@ -65,8 +64,7 @@ class Rotary(object):
                  '_listener',
                  'RANGE_UNBOUNDED',
                  'RANGE_WRAP',
-                 'RANGE_BOUNDED'
-                )
+                 'RANGE_BOUNDED')
 
     RANGE_UNBOUNDED = const(1)
     RANGE_WRAP = const(2)
@@ -74,7 +72,7 @@ class Rotary(object):
 
     # Minimum value in the encoder range. Also the starting value
     _min_val: int
-    # maximum value in the encoder range (not used when range_mode = RANGE_UNBOUNDED)
+    # maximum value in encoder range (not when range_mode = RANGE_UNBOUNDED)
     _max_val: int
     # Increment value for each step
     _incr: int
@@ -84,11 +82,11 @@ class Rotary(object):
     _range_mode: int
     # half-step mode
     _half_step: bool
-    # Invert the CLK and DT signals. - 
+    # Invert the CLK and DT signals.
     # Use when encoder resting value is CLK, DT = 00
     _invert: bool
     # Callback functions that will be called on each change of encoder count
-    _listener: List[Callable]
+    _listener: list[callable]
 
     _value: int
     _state: int
@@ -96,12 +94,11 @@ class Rotary(object):
     def __init__(self,
                  min_val: int,
                  max_val: int,
-                 incr:int,
-                 reverse: bool, 
+                 incr: int,
+                 reverse: bool,
                  range_mode: int,
                  half_step: bool,
-                 invert: bool,
-                ):
+                 invert: bool) -> None:
         self._min_val = min_val
         self._max_val = max_val
         self._incr = incr
@@ -111,7 +108,7 @@ class Rotary(object):
         self._invert = invert
         self._value = min_val
         self._state = _R_START
-        self._listener: List[Callable[[], None]] = []
+        self._listener: list[callable[[], None]] = []
 
     def set(self,
             value: int | None = None,
@@ -121,10 +118,10 @@ class Rotary(object):
             reverse: bool | None = None,
             range_mode: int | None = None
             ) -> None:
-        
+
         # enable DT and CLK pin interrupts
         self._hal_enable_irq()
-        
+
         if value is not None:
             self._value = value
         if min_val is not None:
@@ -151,15 +148,21 @@ class Rotary(object):
     def close(self) -> None:
         self._hal_close()
 
-    def add_listener(self, l: Callable[[], None]) -> None:
+    def add_listener(self,
+                     l: callable[[], None]) -> None:
         self._listener.append(l)
 
-    def remove_listener(self, l: Callable[[], None]) -> None:
+    def remove_listener(self,
+                        l: callable[[], None]) -> None:
         if l not in self._listener:
             raise ValueError('{} is not an installed listener'.format(l))
         self._listener.remove(l)
 
-    def _wrap(self, value: int, incr:int, lower_bound:int, upper_bound:int) -> int:
+    def _wrap(self,
+              value: int,
+              incr: int,
+              lower_bound: int,
+              upper_bound: int) -> int:
         range = upper_bound - lower_bound + 1
         value = value + incr
 

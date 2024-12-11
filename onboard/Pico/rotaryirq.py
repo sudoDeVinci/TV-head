@@ -1,6 +1,6 @@
 from machine import Pin
 from rotary import Rotary
-from config import RENDER_VALUES, CHANNEL, BRIGHTNESS, animation_amount
+from config import RENDER_VALUES, BRIGHTNESS, animation_amount
 
 
 class RotaryIRQ(Rotary):
@@ -9,12 +9,12 @@ class RotaryIRQ(Rotary):
                  '_pin_dt',
                  'pull_up',
                  'IRQ_RISING_FALLING')
-    
+
     IRQ_RISING_FALLING = Pin.IRQ_RISING | Pin.IRQ_FALLING
-    
+
     # GPIO pin connected to encoder CLK pin
     _pin_clk: int
-    
+
     # GPIO pin connected to encoder DT pin
     _pin_dt: int
 
@@ -24,8 +24,7 @@ class RotaryIRQ(Rotary):
     # Enable internal pull up resistors. -
     # Use when rotary encoder hardware lacks pull up resistors.
     pull_up: bool
-    
-    
+
     def __init__(
         self,
         pin_num_clk: int,
@@ -40,7 +39,13 @@ class RotaryIRQ(Rotary):
         half_step: bool = False,
         invert=False
     ) -> None:
-        super().__init__(min_val, max_val, incr, reverse, range_mode, half_step, invert)
+        super().__init__(min_val,
+                         max_val,
+                         incr,
+                         reverse,
+                         range_mode,
+                         half_step,
+                         invert)
 
         self._label = label
 
@@ -52,7 +57,7 @@ class RotaryIRQ(Rotary):
             self._pin_dt = Pin(pin_num_dt, Pin.IN)
 
         self._hal_enable_irq()
-    
+
     def label(self) -> str:
         return self._label
 
@@ -91,16 +96,16 @@ def rot_irq() -> None:
     global RENDER_VALUES
     global animation_amount
 
-    RENDER_VALUES[ROTARYIRQ_BRIGHTNESS.label()] = (ROTARYIRQ_BRIGHTNESS.value() / 50)
+    lbl = ROTARYIRQ_BRIGHTNESS.label()
+    RENDER_VALUES[lbl] = (ROTARYIRQ_BRIGHTNESS.value() / 50)
 
 
-ROTARYIRQ_BRIGHTNESS = RotaryIRQ(pin_num_clk = 18,
-                                pin_num_dt = 19,
-                                label = BRIGHTNESS,
-                                min_val = 0,
-                                max_val = 50,
-                                reverse = False,
-                                range_mode = Rotary.RANGE_WRAP
-                            )
+ROTARYIRQ_BRIGHTNESS = RotaryIRQ(pin_num_clk=18,
+                                 pin_num_dt=19,
+                                 label=BRIGHTNESS,
+                                 min_val=0,
+                                 max_val=50,
+                                 reverse=False,
+                                 range_mode=Rotary.RANGE_WRAP)
 
 ROTARYIRQ_BRIGHTNESS.add_listener(rot_irq)

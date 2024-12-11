@@ -1,9 +1,9 @@
-from typing import Dict, Tuple
 from micropython import const
 from os import listdir, ilistdir
 
 
-# If debug is True, our debug lines throughtout the code will print. Otherwise, do nothing
+# If debug is True, our debug lines throughtout the code will print.
+# If debug is False, our debug lines will not print.
 DEBUG: bool = True
 
 
@@ -41,14 +41,14 @@ P: int = const(16)
 N: int = const(100)
 
 # Render variable values for playing animations.
-RENDER_VALUES: Dict[str, int | float] = {
+RENDER_VALUES: dict[str, int | float] = {
     BRIGHTNESS: 0.1,
     SPEED: 1,
     CHANNEL: 1
 }
 
 
-def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> Tuple[str]:
+def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> tuple[str]:
     global ANIMATION_FOLDER
     """
     Get a tuple of the animation folder paths.
@@ -57,13 +57,13 @@ def get_animation_paths(folder_path: str = ANIMATION_FOLDER) -> Tuple[str]:
                  for file in ilistdir(folder_path) if file[1] == 0x4000)
 
 
-def read_frames(folder_path: str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
+def read_frames(folder_path: str) -> tuple[tuple[tuple[int, int, int, int]]]:
     """
     Read the frames within a given animation
     folder and return it as a tuple[index, r, g, b] of ints.
     """
-    def assemble(filename: str) -> Tuple[Tuple[int, int, int, int]]:
-        frame: Tuple[Tuple[int, int, int, int]] = None
+    def assemble(filename: str) -> tuple[tuple[int, int, int, int]]:
+        frame: tuple[tuple[int, int, int, int]] = None
         with open(filename, 'r', encoding="utf-8") as csvfile:
             """
             Skip the first line so we can directly convert
@@ -84,7 +84,7 @@ def read_frames(folder_path: str) -> Tuple[Tuple[Tuple[int, int, int, int]]]:
     return frames
 
 
-# Pre-load animations in a Tuple.
+# Pre-load animations in a tuple.
 animation_paths = get_animation_paths()
 animation_amount = len(animation_paths)
 animations = tuple(read_frames(folder) for folder in animation_paths)
