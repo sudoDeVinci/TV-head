@@ -1,4 +1,4 @@
-import functools
+from functools import lru_cache
 from enum import Enum
 from typing import Optional
 
@@ -7,7 +7,7 @@ class BoardType:
     UNKNOWN = "unknown"
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def _match(cls, board_name: str) -> Optional['BoardType']:
         if not hasattr(cls, '__members__'):
             return None
@@ -22,14 +22,14 @@ class BoardType:
         return None
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def match(cls, board_name: str) -> 'BoardType':
         board_name = board_name.lower()
         result = cls._match(board_name)
         return cls.UNKNOWN if result is None else result
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)
     def __contains__(cls, board_name: str) -> bool:
         return BoardType.match(board_name) != cls.UNKNOWN
 
@@ -41,6 +41,7 @@ class ESP32Boards(BoardType, Enum):
     ESP32 = "esp32"
     ESP32S2 = "esp32s2"
     ESP32S3 = "esp32s3"
+    ESP32C3 = "esp32c3"
 
 
 class RaspberryPiBoards(BoardType, Enum):
@@ -50,6 +51,7 @@ class RaspberryPiBoards(BoardType, Enum):
     RASPBERRY_PI_3 = "raspberry pi 3"
     RASPBERRY_PI_4 = "raspberry pi 4"
     RASPBERRY_PI_PICO = "raspberry pi pico"
+    RASPBERRY_PI_PICO_2 = "raspberry pi pico 2"
 
 
 class BoardCatalog(BoardType, Enum):

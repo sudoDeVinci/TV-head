@@ -24,6 +24,31 @@ def nothing(image: MatLike | UMat,
 
 
 class Rotation(Enum):
+    """
+    An enumeration representing different rotation transformations.
+
+    Members:
+        ROTATE_90 (partial):
+            A partial function that rotates an image
+            90 degrees counterclockwise.
+
+        ROTATE_180 (partial):
+            A partial function that rotates an image 180 degrees.
+
+        ROTATE_270 (partial):
+            A partial function that rotates an image 90 degrees clockwise.
+
+        NONE (partial): A partial function that performs no rotation or flip.
+
+    Methods:
+        _missing_(cls, value: Self):
+            Returns the NONE rotation if the given value is not
+            found in the enumeration.
+
+        __call__(self, *args):
+            Calls the partial function associated with the enumeration value.
+    """
+
     ROTATE_90 = partial(mapped_rotate, rot=ROTATE_90_COUNTERCLOCKWISE)
     ROTATE_180 = partial(mapped_rotate, rot=ROTATE_180)
     ROTATE_270 = partial(mapped_rotate, rot=ROTATE_90_CLOCKWISE)
@@ -37,6 +62,31 @@ class Rotation(Enum):
 
 
 class Flip(Enum):
+    """
+    An enumeration representing different types of image flip transformations.
+
+    Members:
+        VERTICAL_FLIP (partial):
+            A partial function that performs a vertical flip on an image.
+
+        HORIZONTAL_FLIP (partial):
+            A partial function that performs a horizontal flip on an image.
+
+        VERTICAL_AND_HORIZONTAL_FLIP (partial):
+            A partial function that performs both vertical and
+            horizontal flips on an image.
+
+        NONE (partial):
+            A partial function that performs no transformation on an image.
+
+    Methods:
+        _missing_(cls, value: Self) -> Flip:
+            Returns the NONE transformation if the provided value is
+            not a valid Flip member.
+
+        __call__(self, *args):
+            Calls the partial function associated with the Flip member.
+    """
     VERTICAL_FLIP = partial(mapped_flip, flp=1)
     HORIZONTAL_FLIP = partial(mapped_flip, flp=0)
     VERTICAL_AND_HORIZONTAL_FLIP = partial(mapped_flip, flp=-1)

@@ -1,47 +1,31 @@
 import numpy.typing
 from tvlib._boards import BoardCatalog
-from tvlib._fileio import load_toml, mkdir
+from tvlib._fileio import load_toml, FOLDERS, out01, out02
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, LiteralString
 from os import path
 
+HEADER: Tuple[LiteralString] = ('index', 'blue', 'green', 'red')
+DEBUG: bool = True
+debug = out01 if DEBUG else out02
 
-# For typing, these are inexact because out memory
+# For typing, these are inexact because of memory
 # layout differences between Mat and UMat
 NDArray = numpy.typing.NDArray[Any]
 MatLike = numpy.typing.NDArray[numpy.uint8]
 UMat = numpy.typing.NDArray[numpy.uint8]
 
-# Directories
-IMAGE_DIR: str = mkdir("animations")
-CSV_DIR: str = mkdir("csvs")
-JSON_DIR: str = mkdir("json")
-DEBUG: bool = True
-CONFIG_FILE: str = "conf.toml"
-HEADER: Tuple[str] = ('index', 'blue', 'green', 'red')
-
-
-def out01(x: str) -> None:
-    """
-    Print the given string.
-    """
-    print(x)
-
-
-def out02(x: str) -> None:
-    """
-    Don't print the given string.
-    This is a dummy function.
-    """
-    pass
-
-
-debug = out01 if DEBUG else out02
-
 
 class Config:
     """
     Static Config class to hold configuration details.
+
+    Example:
+    ```Python
+        Config.load()
+        debug(Config.boardtype())
+        debug(Config.resolution())
+    ```
     """
     _height: int | None = None
     _width: int | None = None
@@ -81,17 +65,20 @@ class Config:
         """
         Load the configuration file and populate with its details.
         """
-        if not path.exists(CONFIG_FILE):
-            debug(f"Error: File '{CONFIG_FILE}' not found.")
+
+        conf = FOLDERS.CONFIG_FILE.value
+
+        if not path.exists(conf):
+            debug(f"Error: File '{conf}' not found.")
             return None
 
-        data = load_toml(CONFIG_FILE)
+        data = load_toml(conf)
         if data is None:
-            debug(f"Error: Config file '{CONFIG_FILE}' is None.")
+            debug(f"Error: Config file '{conf}' is None.")
             return None
 
         if not Config._config_valid(data):
-            debug(f"Error: Config file '{CONFIG_FILE}' is invalid.")
+            debug(f"Error: Config file '{conf}' is invalid.")
             return None
 
         board = BoardCatalog.match(data["target"]["board"])
@@ -100,21 +87,15 @@ class Config:
                          board)
 
     @staticmethod
-    def get_res() -> Tuple[int, int]:
+    def resolution() -> Tuple[int, int]:
         """
         Get the resolution of the display.
         """
         return (Config._width, Config._height)
 
     @staticmethod
-    def get_board_type() -> BoardCatalog:
+    def boardtype() -> BoardCatalog:
         """
         Get the board type.
         """
         return Config._board_type
-
-
-if __name__ == "__main__":
-    Config.load()
-    debug(Config.get_board_type())
-    debug(Config.get_res())

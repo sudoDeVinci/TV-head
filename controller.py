@@ -5,9 +5,8 @@ from ui import (ImageMode, ImageModeMenu, ImageModeMenuPrintout,
                 FlipMode, FlipModeMenu, FlipModeMenuPrintout,
                 message_err, welcome, config_loaded)
 
-resolution = None
 done: bool = False
-image_settings = {
+IMAGE_SETTINGS = {
     'rotation': Rotation.NONE,
     'flip': Flip.NONE,
     'imagemode': None
@@ -17,15 +16,15 @@ ERR = "Please select a choice from the menu given."
 
 
 def init():
-    global resolution
+    global IMAGE_SETTINGS
     welcome()
     Config.load()
     config_loaded()
-    resolution = Config.get_res()
+    IMAGE_SETTINGS['resolution'] = Config.resolution()
 
 
 def main():
-    init()
+    global IMAGE_SETTINGS
     imageModeSelect()
 
 

@@ -1,7 +1,6 @@
 from tvlib.transformations import Flip, Rotation
-from tvlib._config import (MatLike, write_csv, isimage,
-                           IMAGE_DIR, CSV_DIR, JSON_DIR, HEADER)
-from tvlib._fileio import write_json
+from tvlib._config import MatLike, write_csv, isimage, HEADER
+from tvlib._fileio import write_json, FOLDERS
 from os import path, listdir, mkdir
 from numpy import array, nonzero, array_equal, flip, uint8, resize
 from typing import List, Tuple
@@ -15,9 +14,11 @@ def save_frames_csv(frames: List[List[Tuple[int, int, int, int]]],
     """
     if len(frames) == 0:
         return None
-    mkdir(path.join(CSV_DIR, label))
 
-    savepaths: List[str] = [path.join(CSV_DIR, label,
+    csvs = FOLDERS.CSV_DIR.value
+    mkdir(path.join(csvs, label))
+
+    savepaths: List[str] = [path.join(csvs, label,
                                       f'{str(count).zfill(4)}.csv'
                                       ) for count in range(len(frames))]
 
@@ -29,9 +30,12 @@ def save_frames_json(frames: List[List[Tuple[int, int, int, int]]],
                      label: str) -> None:
     if len(frames) == 0:
         return None
-    mkdir(path.join(JSON_DIR, label))
 
-    savepath: str = path.join(JSON_DIR, label, f'{label}.json')
+    mkdir(path.join(FOLDERS.JSON_DIR.value, label))
+
+    savepath: str = path.join(FOLDERS.JSON_DIR.value,
+                              label,
+                              f'{label}.json')
     write_json(savepath, {'frames': frames})
 
 
@@ -139,9 +143,10 @@ def convert_dir(folder: str,
                 flip: Flip = Flip.NONE
                 ) -> List[List[Tuple[int, int, int, int]]]:
 
-    animas = [path.join(IMAGE_DIR,
+    animas = [path.join(FOLDERS.IMAGE_DIR.value,
                         folder, _) for _ in listdir(path.join(
-                            IMAGE_DIR, folder)) if isimage(_)]
+                            FOLDERS.IMAGE_DIR.value,
+                            folder)) if isimage(_)]
     frames = convert_images(animas,
                             target_dimensions,
                             rot,
@@ -157,8 +162,9 @@ def convert_all(target_dimensions: Tuple[int, int],
                 flipper: Flip = Flip.NONE
                 ) -> None:
 
-    for folder in listdir(IMAGE_DIR):
-        if path.isdir(path.join(IMAGE_DIR, folder)):
+    for folder in listdir(FOLDERS.IMAGE_DIR.value):
+        if path.isdir(path.join(FOLDERS.IMAGE_DIR.value,
+                                folder)):
             print(folder)
             convert_dir(folder,
                         target_dimensions,

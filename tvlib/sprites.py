@@ -18,9 +18,21 @@ def sprite_to_array(size: Tuple[int, int],
                     file: str,
                     background_value: int = 0) -> MatLike:
     """
-    Given a sprite sheet where the height and width of the sprites are known,
-    extract each sprite to a seprate image and save them sequentially.
+    Converts a sprite sheet into an array of individual sprites.
+    Args:
+        size (Tuple[int, int]):
+            The width and height of each sprite.
+
+        file (str):
+            The file path to the sprite sheet image.
+
+        background_value (int, optional):
+            The value to use for background pixels. Defaults to 0.
+
+    Returns:
+        MatLike: A numpy array containing the individual sprites.
     """
+
     width, height = size
     sprites = []
 
