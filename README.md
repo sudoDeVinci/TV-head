@@ -1,5 +1,5 @@
 # TV Head
-
+[![Linting](https://github.com/sudoDeVinci/TV-head/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/sudoDeVinci/TV-head/actions/workflows/python-app.yml)
 ## What it is
 
 This is the software behind my Tv Head cosplay made for Närcon Summer 2023 using WS2812B LED strips as a dot matrix display to show various animations and images on the face.
