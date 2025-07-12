@@ -7,7 +7,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![Microcontroller](https://img.shields.io/badge/microcontroller-ESP32%20%7C%20Pico-orange.svg)](https://github.com/sudoDeVinci/TV-head)
 
-> **Enterprise-grade LED matrix animation engine for embedded wearable displays**
+> **LED matrix animation engine for embedded wearable displays**
 
 A Python framework for converting images and animations into data for microcontroller-driven LED matrix displays.
 
