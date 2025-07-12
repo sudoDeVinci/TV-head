@@ -9,11 +9,11 @@
 
 > **Enterprise-grade LED matrix animation engine for embedded wearable displays**
 
-A production-hardened Python framework for converting images and animations into highly optimized data streams for microcontroller-driven LED matrix displays. Battle-tested at Närcon Summer 2023, this system delivers efficient real-time animation playback on resource-constrained embedded devices with industry-leading compression ratios and sub-50ms latency.
+A Python framework for converting images and animations into data for microcontroller-driven LED matrix displays.
 
 ## 🚀 Key Features
 
-- **🎯 Differential Compression**: 70-90% file size reduction through intelligent frame diffing with LZ4-style optimization
+- **🎯 Differential Compression**: 70-90% file size reduction through frame diffing with LZ4-style optimization
 - **⚡ Microcontroller Optimized**: JSON format designed for embedded systems
 - **🔧 Hardware Agnostic**: Supports ESP32, Raspberry Pi Pico, Arduino, and STM32 platforms
 - **🎨 Multi-format Support**: PNG, JPEG, GIF, sprite sheets, and frame sequences with auto-detection
