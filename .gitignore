@@ -11,3 +11,5 @@ bin/*
 pyvenv.cfg
 venv/*
 __pycache__
+.log
+json/
