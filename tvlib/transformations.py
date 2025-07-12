@@ -1,25 +1,46 @@
-from tvlib._config import MatLike, UMat, Self
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union, Any, Optional
 from enum import Enum
-from cv2 import (ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE,
-                 flip, rotate)
 from functools import partial
 
+try:
+    from cv2 import (ROTATE_90_COUNTERCLOCKWISE, ROTATE_180, ROTATE_90_CLOCKWISE,
+                     flip, rotate)
+except ImportError:
+    # Fallback for environments without OpenCV
+    ROTATE_90_COUNTERCLOCKWISE = 0
+    ROTATE_180 = 1
+    ROTATE_90_CLOCKWISE = 2
+    
+    def flip(image: Any, flipCode: int) -> Any:
+        """Fallback flip function."""
+        return image
+    
+    def rotate(image: Any, rotateCode: int) -> Any:
+        """Fallback rotate function."""
+        return image
 
-Flip = None
-Rotation = None
+if TYPE_CHECKING:
+    from tvlib._config import MatLike, UMat
+
+# Type aliases for better readability
+ImageType = Union['MatLike', 'UMat']
 
 
-def mapped_flip(image: MatLike | UMat, flp: Flip) -> MatLike | UMat:
+def mapped_flip(image: ImageType, flp: 'Flip') -> ImageType:
+    """Apply flip transformation to image."""
     return flip(image, flp)
 
 
-def mapped_rotate(image: MatLike | UMat, rot: Rotation) -> MatLike | UMat:
+def mapped_rotate(image: ImageType, rot: 'Rotation') -> ImageType:
+    """Apply rotation transformation to image."""
     return rotate(image, rot)
 
 
-def nothing(image: MatLike | UMat,
-            rot: Rotation = None,
-            flip: Flip = None) -> MatLike | UMat:
+def nothing(image: ImageType,
+            rot: Optional['Rotation'] = None,
+            flip_param: Optional['Flip'] = None) -> ImageType:
+    """No-op transformation function."""
     return image
 
 
@@ -41,7 +62,7 @@ class Rotation(Enum):
         NONE (partial): A partial function that performs no rotation or flip.
 
     Methods:
-        _missing_(cls, value: Self):
+        _missing_(cls, value):
             Returns the NONE rotation if the given value is not
             found in the enumeration.
 
@@ -52,12 +73,13 @@ class Rotation(Enum):
     ROTATE_90 = partial(mapped_rotate, rot=ROTATE_90_COUNTERCLOCKWISE)
     ROTATE_180 = partial(mapped_rotate, rot=ROTATE_180)
     ROTATE_270 = partial(mapped_rotate, rot=ROTATE_90_CLOCKWISE)
-    NONE = partial(nothing, rot=None, flip=None)
+    NONE = partial(nothing, rot=None, flip_param=None)
 
-    def _missing_(cls, value: Self):
+    @classmethod
+    def _missing_(cls, value: Any) -> 'Rotation':
         return cls.NONE
 
-    def __call__(self, *args):
+    def __call__(self, *args: Any) -> Any:
         return self.value(*args)
 
 
@@ -80,7 +102,7 @@ class Flip(Enum):
             A partial function that performs no transformation on an image.
 
     Methods:
-        _missing_(cls, value: Self) -> Flip:
+        _missing_(cls, value) -> Flip:
             Returns the NONE transformation if the provided value is
             not a valid Flip member.
 
@@ -90,10 +112,11 @@ class Flip(Enum):
     VERTICAL_FLIP = partial(mapped_flip, flp=1)
     HORIZONTAL_FLIP = partial(mapped_flip, flp=0)
     VERTICAL_AND_HORIZONTAL_FLIP = partial(mapped_flip, flp=-1)
-    NONE = partial(nothing, rot=None, flip=None)
+    NONE = partial(nothing, rot=None, flip_param=None)
 
-    def _missing_(cls, value: Self):
+    @classmethod
+    def _missing_(cls, value: Any) -> 'Flip':
         return cls.NONE
 
-    def __call__(self, *args):
+    def __call__(self, *args: Any) -> Any:
         return self.value(*args)

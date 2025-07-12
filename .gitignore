@@ -10,3 +10,4 @@ include/*
 bin/*
 pyvenv.cfg
 venv/*
+__pycache__

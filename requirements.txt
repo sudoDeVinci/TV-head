@@ -1,0 +1,16 @@
+# Core dependencies
+opencv-python>=4.5.0
+numpy>=1.19.0
+toml>=0.10.0
+
+# Optional dependencies for sprite handling
+pygame>=2.0.0
+
+# Development dependencies (optional)
+pytest>=6.0.0
+black>=21.0.0
+flake8>=3.8.0
+mypy>=0.800
+
+# Documentation
+Sphinx>=3.0.0

@@ -1,11 +1,23 @@
-import toml
-import csv
+import json
 from json import dump, JSONEncoder
-from os import path, makedirs, mkdir, walk, rename
-from typing import Any, Dict, LiteralString, List
-from numpy import integer, floating, ndarray
+from os import path, makedirs, walk, rename
+from typing import Any, Dict, LiteralString, List, Optional
 from enum import Enum
 import logging
+
+# Optional imports with fallbacks
+try:
+    import toml
+except ImportError:
+    toml = None
+
+try:
+    from numpy import integer, floating, ndarray
+except ImportError:
+    # Fallback types for environments without NumPy
+    integer = int
+    floating = float
+    ndarray = list
 
 # Logging
 logging.basicConfig(
@@ -35,9 +47,8 @@ def out02(x: str) -> None:
 
 # Directories
 class FOLDERS(Enum):
-    IMAGE_DIR: str = mkdir("animations")
-    CSV_DIR: str = mkdir("csvs")
-    JSON_DIR: str = mkdir("json")
+    IMAGE_DIR: str = "animations"
+    JSON_DIR: str = "json"
     CONFIG_FILE: LiteralString = "conf.toml"
 
 
@@ -61,22 +72,31 @@ def mkdir(folder: str) -> str:
     return folder
 
 
-def write_toml(data: Dict, path: str) -> None:
+def write_toml(data: Dict, file_path: str) -> None:
     """
     Write to a toml file.
     """
+    if toml is None:
+        logging.error("TOML library not available. Please install with: pip install toml")
+        return None
+        
     try:
         out = toml.dumps(data)
-        with open(path, "w") as f:
+        with open(file_path, "w") as f:
             f.write(out)
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error writing TOML file: {e}")
         return None
 
 
-def load_toml(file_path: str) -> dict[str, Any] | None:
+def load_toml(file_path: str) -> Optional[Dict[str, Any]]:
     """"
     Attempt to load data from toml file.
     """
+    if toml is None:
+        logging.error("TOML library not available. Please install with: pip install toml")
+        return None
+        
     toml_data = None
     try:
         with open(file_path, 'r') as file:
@@ -84,39 +104,37 @@ def load_toml(file_path: str) -> dict[str, Any] | None:
             if not toml_data:
                 return None
     except FileNotFoundError:
+        logging.error(f"TOML file not found: {file_path}")
         return None
-    except toml.TomlDecodeError:
+    except Exception as e:
+        logging.error(f"Error loading TOML file: {e}")
         return None
 
     return toml_data
 
 
-def write_csv(savepath: str,
-              headers: List[str],
-              data: List[List[str]]) -> None:
-    """
-    Attempt to write to csv file.
-    """
-
-    with open(savepath, 'w+', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(headers)
-        writer.writerows(data)
-
-
 def _write_json(savepath: str, data: dict) -> None:
     """
-    Attempt to write to json file.
+    Attempt to write to json file with optimized formatting for microcontrollers.
     """
     with open(savepath, 'w', encoding="utf-8") as jsonfile:
-        dump(data, jsonfile, cls=NpEncoder)
+        # Use compact formatting to minimize file size for microcontrollers
+        dump(data, jsonfile, cls=NpEncoder, separators=(',', ':'), ensure_ascii=False)
 
 
 def write_json(savepath: str, data: dict) -> None:
+    """
+    Write data to JSON file with error handling.
+    
+    Args:
+        savepath: Path to save the JSON file
+        data: Dictionary data to save
+    """
     try:
         _write_json(savepath, data)
+        logging.info(f"Successfully wrote JSON file: {savepath}")
     except Exception as e:
-        print(f"Error writing to json file:-> {e}")
+        logging.error(f"Error writing to json file: {e}")
         return None
 
 
